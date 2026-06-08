@@ -1,14 +1,10 @@
-FROM eclipse-temurin:25-jdk AS builder
+FROM gradle:9.5.1-jdk25 AS builder
 WORKDIR /app
 COPY . .
-RUN chmod +x gradlew && ./gradlew clean bootJar -x test --no-daemon
+RUN gradle clean bootJar -x test
 
 
-FROM eclipse-temurin:25-jdk
-USER root
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends default-mysql-client \
-  && rm -rf /var/lib/apt/lists/*
+FROM eclipse-temurin:25-jdk-noble
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 
