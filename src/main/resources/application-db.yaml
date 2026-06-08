@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://${DB_CONNECTION_IP:localhost}:${DB_CONNECTION_PORT:3319}/${DB_NAME:stay_board_rms}?allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&useSSL=false&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true&zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_ROOT_PASSWORD:${DB_PASSWORD:password}}
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+  jpa:
+    show-sql: false
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true

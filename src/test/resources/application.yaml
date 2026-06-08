@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://${DB_CONNECTION_IP:localhost}:${DB_CONNECTION_PORT:3319}/${DB_NAME:stay_board_rms_test}?allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true&useSSL=false&connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true&zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_ROOT_PASSWORD:${DB_PASSWORD:password}}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+url:
+  stay-board: http://localhost:8080

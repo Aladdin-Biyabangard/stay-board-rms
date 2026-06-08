@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: stay-board-rms
+  http:
+    converters:
+      preferred-json-mapper: jackson2
+  config:
+    import:
+      - classpath:application-security.yaml
+      - classpath:application-db.yaml
+      - classpath:application-file.yml
+      - classpath:application-cloud.yml
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
+url:
+  stay-board: ${STAY_BOARD_URL:http://localhost:8089}

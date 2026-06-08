@@ -1,0 +1,8 @@
+cloud:
+  aws:
+    region: ${AWS_REGION:eu-north-1}
+    credentials:
+      access-key: ${AWS_ACCESS_KEY:AKIA3DBOPRDC2DA4E3VG}
+      secret-key: ${AWS_SECRET_KEY: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}
+    s3:
+      bucket: ${AWS_S3_BUCKET:stay-board}

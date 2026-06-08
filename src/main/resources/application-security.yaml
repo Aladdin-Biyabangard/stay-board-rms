@@ -1,0 +1,13 @@
+security:
+  jwtProperties:
+    secret: ${APP_SECRET_KEY:VFdGdUlHbHpJR1JwYzNScGJtZDFhWE5vWldRc0lHNXZkQ0J2Ym14NUlHSjVJR2hwY3lCeVpXRnpiMjRzSUdKMWRDQXVMaTQ5UmVhZHkgZm9yIGFkdmVudHVyZXMuIFRoZSBuZXcgUEVVR0VPVCA1MDA4IHJldmFtcHMgdGhlIG1vZGVybml0eSBvZiBpdHMgc2lsaG91ZXR0ZSwgd2l0aCBlbGVnYW5jZSBhbmQgbWF0dXJpdHksIHN0cmlraW5nIGEgcGVyZmVjdCBiYWxhbmNlIGJldHdlZW4gcG93ZXIgYW5kIHJlZmluZW1lbnQu}
+    token-validity-in-seconds: 1800
+    refresh-token-validity-in-days: 7          # 7 days
+    password-reset-expiration-in-minutes: 15
+  cors:
+    allowed-origins: '*'
+    allowed-methods: '*'
+    allowed-headers: '*'
+    exposed-headers: 'Authorization,Link,X-Total-Count'
+    allow-credentials: true
+    max-age: 1800
