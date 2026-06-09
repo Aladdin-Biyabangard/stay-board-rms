@@ -16,15 +16,17 @@ public class PmsServiceFeignAuthConfig {
     @Bean
     public RequestInterceptor pmsServiceAuthForwardInterceptor(PmsServiceAuthProperties pmsServiceAuthProperties) {
         return template -> {
+            // Guest portal: forward the guest JWT — no internal API key required.
+            if (AuthenticatedUserSupport.isGuest()) {
+                forwardIncomingAuthorization(template);
+                return;
+            }
+
             if (applyInternalServiceAuth(template, pmsServiceAuthProperties)) {
                 return;
             }
 
             if (applyServiceToken(template, pmsServiceAuthProperties)) {
-                return;
-            }
-
-            if (AuthenticatedUserSupport.isGuest()) {
                 return;
             }
 

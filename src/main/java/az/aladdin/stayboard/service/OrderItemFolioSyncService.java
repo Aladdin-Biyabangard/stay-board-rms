@@ -1,8 +1,6 @@
 package az.aladdin.stayboard.service;
 
 import az.aladdin.stayboard.client.StayBoardFolioClient;
-import az.aladdin.stayboard.config.PmsServiceAuthProperties;
-import az.aladdin.stayboard.security.AuthenticatedUserSupport;
 import az.aladdin.stayboard.entity.OrderEntity;
 import az.aladdin.stayboard.entity.OrderItemEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
@@ -27,7 +25,6 @@ public class OrderItemFolioSyncService {
 
     private final StayBoardFolioClient stayBoardFolioClient;
     private final OrderItemRepository orderItemRepository;
-    private final PmsServiceAuthProperties pmsServiceAuthProperties;
 
     public void postCharge(OrderItemEntity orderItem) {
         OrderEntity order = orderItem.getOrder();
@@ -79,15 +76,7 @@ public class OrderItemFolioSyncService {
     }
 
     private boolean shouldSyncToFolio(OrderEntity order) {
-        if (order == null || order.getRoomNumber() == null || order.getRoomNumber().isBlank()) {
-            return false;
-        }
-        if (AuthenticatedUserSupport.isGuest()
-                && !pmsServiceAuthProperties.hasInternalApiKey()
-                && !pmsServiceAuthProperties.hasServiceToken()) {
-            return false;
-        }
-        return true;
+        return order != null && order.getRoomNumber() != null && !order.getRoomNumber().isBlank();
     }
 
     private AddFolioChargeRequest buildChargeRequest(OrderItemEntity orderItem) {
