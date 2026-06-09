@@ -1,7 +1,7 @@
 package az.aladdin.stayboard.service;
 
 import az.aladdin.stayboard.annotation.NoLogging;
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.MenuCategoryEntity;
 import az.aladdin.stayboard.entity.MenuItemEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MenuItemService {
+public class MenuItemService extends HotelAwareService {
 
     private static final String MENU_ITEM_PHOTO_KEY = "menuItemPhoto";
 
@@ -43,7 +43,7 @@ public class MenuItemService {
 
     @Transactional
     public MenuItemResponse create(CreateMenuItemRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         MenuCategoryEntity menuCategory = getMenuCategoryOrThrow(request.menuCategoryId(), hotelId);
         MenuItemEntity entity = menuItemMapper.toEntity(request, hotelId, menuCategory);
         return menuItemMapper.toResponse(menuItemRepository.save(entity));
@@ -51,7 +51,7 @@ public class MenuItemService {
 
     @Transactional
     public MenuItemResponse update(Long id, UpdateMenuItemRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         MenuItemEntity entity = getEntityOrThrow(id);
         MenuCategoryEntity menuCategory = getMenuCategoryOrThrow(request.menuCategoryId(), hotelId);
         menuItemMapper.updateEntity(entity, request, menuCategory);
@@ -60,7 +60,7 @@ public class MenuItemService {
 
     @Transactional
     public MenuItemResponse patch(Long id, PatchMenuItemRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         MenuItemEntity entity = getEntityOrThrow(id);
         MenuCategoryEntity menuCategory = request.menuCategoryId() != null
                 ? getMenuCategoryOrThrow(request.menuCategoryId(), hotelId)
@@ -76,7 +76,7 @@ public class MenuItemService {
 
     @Transactional(readOnly = true)
     public Page<MenuItemResponse> search(MenuItemSearchCriteria criteria, Pageable pageable) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return menuItemRepository.findAll(MenuItemSpecification.withCriteria(hotelId, criteria), pageable)
                 .map(menuItemMapper::toResponse);
     }
@@ -152,7 +152,7 @@ public class MenuItemService {
     }
 
     private MenuItemEntity getEntityOrThrow(Long id) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return menuItemRepository.findByIdAndHotelId(id, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.MENU_ITEM));
     }

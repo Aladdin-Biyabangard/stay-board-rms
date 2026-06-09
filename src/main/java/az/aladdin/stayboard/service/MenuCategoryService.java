@@ -1,7 +1,7 @@
 package az.aladdin.stayboard.service;
 
 import az.aladdin.stayboard.annotation.NoLogging;
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.MenuCategoryEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.EntityKey;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MenuCategoryService {
+public class MenuCategoryService extends HotelAwareService {
 
     private static final String MENU_CATEGORY_PHOTO_KEY = "menuCategoryPhoto";
 
@@ -42,7 +42,7 @@ public class MenuCategoryService {
 
     @Transactional
     public MenuCategoryResponse create(CreateMenuCategoryRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         MenuCategoryEntity entity = menuCategoryMapper.toEntity(request, hotelId);
         return menuCategoryMapper.toResponse(menuCategoryRepository.save(entity));
     }
@@ -68,7 +68,7 @@ public class MenuCategoryService {
 
     @Transactional(readOnly = true)
     public Page<MenuCategoryResponse> search(MenuCategorySearchCriteria criteria, Pageable pageable) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return menuCategoryRepository.findAll(MenuCategorySpecification.withCriteria(hotelId, criteria), pageable)
                 .map(menuCategoryMapper::toResponse);
     }
@@ -147,7 +147,7 @@ public class MenuCategoryService {
     }
 
     private MenuCategoryEntity getEntityOrThrow(Long id) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return menuCategoryRepository.findByIdAndHotelId(id, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.MENU_CATEGORY));
     }

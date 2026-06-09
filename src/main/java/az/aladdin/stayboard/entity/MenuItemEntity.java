@@ -1,8 +1,10 @@
 package az.aladdin.stayboard.entity;
 
 import az.aladdin.stayboard.annotation.NoFieldLogging;
-import az.aladdin.stayboard.model.enums.InventoryUnitType;
+import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.enums.TaxType;
+import az.aladdin.stayboard.persistence.SaleUnitTypeConverter;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
@@ -68,9 +70,9 @@ public class MenuItemEntity {
     @Enumerated(EnumType.STRING)
     private TaxType taxType;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = SaleUnitTypeConverter.class)
     @Builder.Default
-    private InventoryUnitType saleUnitType = InventoryUnitType.COUNT;
+    private SaleUnitType saleUnitType = SaleUnitType.PIECE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_category_id")

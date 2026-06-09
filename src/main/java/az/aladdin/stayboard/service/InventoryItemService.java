@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.InventoryItemEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.EntityKey;
@@ -27,7 +27,7 @@ import java.util.EnumSet;
 
 @Service
 @RequiredArgsConstructor
-public class InventoryItemService {
+public class InventoryItemService extends HotelAwareService {
 
     private static final EnumSet<InventoryTransactionType> MANUAL_TYPES = EnumSet.of(
             InventoryTransactionType.RECEIPT,
@@ -42,7 +42,7 @@ public class InventoryItemService {
 
     @Transactional
     public InventoryItemResponse create(CreateInventoryItemRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         InventoryItemEntity entity = inventoryItemMapper.toEntity(request, hotelId);
         return inventoryItemMapper.toResponse(inventoryItemRepository.save(entity));
     }
@@ -68,7 +68,7 @@ public class InventoryItemService {
 
     @Transactional(readOnly = true)
     public Page<InventoryItemResponse> search(InventoryItemSearchCriteria criteria, Pageable pageable) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return inventoryItemRepository.findAll(InventoryItemSpecification.withCriteria(hotelId, criteria), pageable)
                 .map(inventoryItemMapper::toResponse);
     }
@@ -99,7 +99,7 @@ public class InventoryItemService {
     }
 
     private InventoryItemEntity getEntityOrThrow(Long id) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return inventoryItemRepository.findByIdAndHotelId(id, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.INVENTORY_ITEM));
     }

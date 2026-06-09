@@ -3,6 +3,7 @@ package az.aladdin.stayboard.security;
 import az.aladdin.stayboard.entity.GuestInformation;
 import az.aladdin.stayboard.entity.OrderEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
+import az.aladdin.stayboard.exception.EntityKey;
 import az.aladdin.stayboard.exception.MessageKey;
 import az.aladdin.stayboard.model.enums.OrderStatus;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -84,6 +85,19 @@ public class GuestOrderAccess {
             return null;
         }
         return email.trim().toLowerCase();
+    }
+
+    public static void ensureGuestCanAccessOrder(OrderEntity order) {
+        currentGuestScope().ifPresent(scope -> {
+            if (!ownsOrder(order.getGuestInformation(), scope)) {
+                throw ApiExceptions.notFound(EntityKey.ORDER);
+            }
+        });
+    }
+
+    public static void ensureGuestCanModifyOrder(OrderEntity order, LocalDateTime now) {
+        ensureGuestCanAccessOrder(order);
+        ensureGuestCanModify(order, now);
     }
 
     public static void ensureGuestCanModify(OrderEntity order, LocalDateTime now) {

@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.client;
 
-import az.aladdin.stayboard.config.FeignAuthConfig;
+import az.aladdin.stayboard.config.PmsServiceFeignAuthConfig;
 import az.aladdin.stayboard.model.request.folio.AddFolioChargeRequest;
 import az.aladdin.stayboard.model.request.folio.VoidFolioChargeRequest;
 import az.aladdin.stayboard.model.response.folio.FolioChargeResponse;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(
         name = "stay-board-folio",
         url = "${url.stay-board}",
-        configuration = FeignAuthConfig.class
+        configuration = PmsServiceFeignAuthConfig.class
 )
 public interface StayBoardFolioClient {
 

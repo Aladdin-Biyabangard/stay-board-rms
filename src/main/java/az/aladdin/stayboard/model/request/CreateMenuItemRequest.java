@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.model.request;
 
-import az.aladdin.stayboard.model.enums.InventoryUnitType;
+import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.enums.TaxType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +15,7 @@ public record CreateMenuItemRequest(
         @NotNull @PositiveOrZero BigDecimal price,
         @PositiveOrZero BigDecimal taxRate,
         TaxType taxType,
-        InventoryUnitType saleUnitType,
+        SaleUnitType saleUnitType,
         @NotNull Long menuCategoryId
 ) {
 }

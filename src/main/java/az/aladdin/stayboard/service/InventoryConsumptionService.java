@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.exception.NoteKey;
 import az.aladdin.stayboard.exception.ReferenceType;
 import az.aladdin.stayboard.entity.OrderItemEntity;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InventoryConsumptionService {
+public class InventoryConsumptionService extends HotelAwareService {
 
     private final RecipeRepository recipeRepository;
     private final InventoryTransactionRepository inventoryTransactionRepository;
@@ -26,7 +26,7 @@ public class InventoryConsumptionService {
 
     @Transactional
     public void consumeForOrderItem(OrderItemEntity orderItem) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         if (inventoryTransactionRepository.existsByReferenceIdAndReferenceTypeAndTransactionType(
                 orderItem.getId(),
                 ReferenceType.ORDER_ITEM,

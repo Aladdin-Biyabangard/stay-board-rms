@@ -1,6 +1,5 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
 import az.aladdin.stayboard.entity.OrderEntity;
 import az.aladdin.stayboard.entity.TableEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
@@ -18,6 +17,7 @@ import az.aladdin.stayboard.repository.OrderRepository;
 import az.aladdin.stayboard.repository.TableRepository;
 import az.aladdin.stayboard.security.AuthenticatedUserSupport;
 import az.aladdin.stayboard.security.GuestOrderAccess;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.service.hotel.HotelTimeService;
 import az.aladdin.stayboard.specification.OrderSpecification;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +28,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.function.BiFunction;
+
 @Service
 @RequiredArgsConstructor
-public class OrderService {
+public class OrderService extends HotelAwareService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
@@ -40,10 +42,11 @@ public class OrderService {
     private final HotelTimeService hotelTimeService;
     private final OrderItemFolioSyncService orderItemFolioSyncService;
     private final TableAvailabilityService tableAvailabilityService;
+    private final OrderItemService orderItemService;
 
     @Transactional
     public OrderResponse create(CreateOrderRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         TableEntity tableEntity = resolveTable(request.tableId(), hotelId);
         ensureTableAvailableForOrder(hotelId, tableEntity);
         OrderEntity entity = orderMapper.toEntity(request, hotelId, tableEntity);
@@ -53,51 +56,44 @@ public class OrderService {
                     AuthenticatedUserSupport.requirePrincipal().getUserId()
             ));
         }
-        return orderMapper.toResponse(orderRepository.save(entity));
+        entity = orderRepository.save(entity);
+        if (request.items() != null && !request.items().isEmpty()) {
+            orderItemService.createLinesForOrder(entity, request.items());
+            entity = fetchOrderEntity(entity.getId());
+        }
+        return orderMapper.toResponse(entity);
     }
 
     @Transactional
     public OrderResponse update(Long id, UpdateOrderRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
-        OrderEntity entity = getEntityOrThrow(id);
-        GuestOrderAccess.ensureGuestCanModify(entity, utcDateTimeService.now());
-        GuestOrderAccess.ensureGuestAllowedOrderStatusChange(request.orderStatus(), entity.getOrderStatus());
-        OrderStatus previousStatus = entity.getOrderStatus();
-        Long preservedGuestUserId = preservedGuestUserId(entity);
-        TableEntity tableEntity = AuthenticatedUserSupport.isGuest() ? entity.getTableEntity() : resolveTable(request.tableId(), hotelId);
-        orderMapper.updateEntity(entity, request, tableEntity);
-        restoreGuestOwnership(entity, preservedGuestUserId);
-        entity = orderRepository.save(entity);
-        voidFolioChargesIfCancelled(entity, previousStatus);
-        return orderMapper.toResponse(entity);
+        return saveModifiedOrder(id, request.orderStatus(), (entity, hotelId) -> {
+            TableEntity tableEntity = AuthenticatedUserSupport.isGuest()
+                    ? entity.getTableEntity()
+                    : resolveTable(request.tableId(), hotelId);
+            orderMapper.updateEntity(entity, request, tableEntity);
+            return tableEntity;
+        });
     }
 
     @Transactional
     public OrderResponse patch(Long id, PatchOrderRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
-        OrderEntity entity = getEntityOrThrow(id);
-        GuestOrderAccess.ensureGuestCanModify(entity, utcDateTimeService.now());
-        GuestOrderAccess.ensureGuestAllowedOrderStatusChange(request.orderStatus(), entity.getOrderStatus());
-        OrderStatus previousStatus = entity.getOrderStatus();
-        Long preservedGuestUserId = preservedGuestUserId(entity);
-        TableEntity tableEntity = AuthenticatedUserSupport.isGuest() || request.tableId() == null
-                ? entity.getTableEntity()
-                : resolveTable(request.tableId(), hotelId);
-        orderMapper.patchEntity(entity, request, tableEntity);
-        restoreGuestOwnership(entity, preservedGuestUserId);
-        entity = orderRepository.save(entity);
-        voidFolioChargesIfCancelled(entity, previousStatus);
-        return orderMapper.toResponse(entity);
+        return saveModifiedOrder(id, request.orderStatus(), (entity, hotelId) -> {
+            TableEntity tableEntity = AuthenticatedUserSupport.isGuest() || request.tableId() == null
+                    ? entity.getTableEntity()
+                    : resolveTable(request.tableId(), hotelId);
+            orderMapper.patchEntity(entity, request, tableEntity);
+            return tableEntity;
+        });
     }
 
     @Transactional(readOnly = true)
     public OrderResponse get(Long id) {
-        return orderMapper.toResponse(getEntityOrThrow(id));
+        return orderMapper.toResponse(fetchOrderEntity(id));
     }
 
     @Transactional(readOnly = true)
     public Page<OrderResponse> search(OrderSearchCriteria criteria, Pageable pageable) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         Pageable sortedPageable = pageable.getSort().isSorted()
                 ? pageable
                 : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -109,27 +105,35 @@ public class OrderService {
 
     @Transactional
     public void delete(Long id) {
-        OrderEntity entity = getEntityOrThrow(id);
+        OrderEntity entity = fetchOrderEntity(id);
         if (orderItemRepository.existsByOrder_IdAndHotelId(entity.getId(), entity.getHotelId())) {
             throw ApiExceptions.conflict(MessageKey.CONFLICT_ORDER_HAS_ITEMS);
         }
         orderRepository.delete(entity);
     }
 
-    private OrderEntity getEntityOrThrow(Long id) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
-        OrderEntity entity = orderRepository.findByIdAndHotelId(id, hotelId)
-                .orElseThrow(() -> ApiExceptions.notFound(EntityKey.ORDER));
-        ensureGuestCanAccess(entity);
-        return entity;
+    private OrderResponse saveModifiedOrder(
+            Long id,
+            OrderStatus requestedStatus,
+            BiFunction<OrderEntity, Long, TableEntity> mutator
+    ) {
+        OrderEntity entity = fetchOrderEntity(id);
+        GuestOrderAccess.ensureGuestCanModify(entity, utcDateTimeService.now());
+        GuestOrderAccess.ensureGuestAllowedOrderStatusChange(requestedStatus, entity.getOrderStatus());
+        OrderStatus previousStatus = entity.getOrderStatus();
+        Long preservedGuestUserId = preservedGuestUserId(entity);
+        mutator.apply(entity, getCurrentHotelId());
+        restoreGuestOwnership(entity, preservedGuestUserId);
+        entity = orderRepository.save(entity);
+        voidFolioChargesIfCancelled(entity, previousStatus);
+        return orderMapper.toResponse(entity);
     }
 
-    private void ensureGuestCanAccess(OrderEntity entity) {
-        GuestOrderAccess.currentGuestScope().ifPresent(scope -> {
-            if (!GuestOrderAccess.ownsOrder(entity.getGuestInformation(), scope)) {
-                throw ApiExceptions.notFound(EntityKey.ORDER);
-            }
-        });
+    private OrderEntity fetchOrderEntity(Long id) {
+        OrderEntity entity = orderRepository.findByIdAndHotelId(id, getCurrentHotelId())
+                .orElseThrow(() -> ApiExceptions.notFound(EntityKey.ORDER));
+        GuestOrderAccess.ensureGuestCanAccessOrder(entity);
+        return entity;
     }
 
     private TableEntity resolveTable(Long tableId, Long hotelId) {

@@ -3,6 +3,8 @@ package az.aladdin.stayboard.mapper;
 import az.aladdin.stayboard.entity.MenuItemEntity;
 import az.aladdin.stayboard.entity.OrderEntity;
 import az.aladdin.stayboard.entity.OrderItemEntity;
+import az.aladdin.stayboard.model.enums.OrderItemStatus;
+import az.aladdin.stayboard.model.request.CreateOrderItemLineRequest;
 import az.aladdin.stayboard.model.request.CreateOrderItemRequest;
 import az.aladdin.stayboard.model.request.PatchOrderItemRequest;
 import az.aladdin.stayboard.model.request.UpdateOrderItemRequest;
@@ -35,6 +37,22 @@ public class OrderItemMapper {
                 .taxRate(request.taxRate())
                 .taxType(request.taxType())
                 .orderItemStatus(request.orderItemStatus())
+                .build();
+    }
+
+    public OrderItemEntity toEntityFromLine(
+            CreateOrderItemLineRequest line,
+            Long hotelId,
+            OrderEntity order,
+            MenuItemEntity menuItem
+    ) {
+        return OrderItemEntity.builder()
+                .hotelId(hotelId)
+                .order(order)
+                .menuItem(menuItem)
+                .quantity(line.quantity())
+                .weightQuantity(line.weightQuantity() != null ? line.weightQuantity() : java.math.BigDecimal.ZERO)
+                .orderItemStatus(OrderItemStatus.ORDERED)
                 .build();
     }
 
@@ -103,6 +121,7 @@ public class OrderItemMapper {
                 entity.getOrder() != null ? entity.getOrder().getOrderNumber() : null,
                 entity.getMenuItem() != null ? entity.getMenuItem().getId() : null,
                 entity.getMenuItem() != null ? entity.getMenuItem().getItemName() : null,
+                entity.getMenuItem() != null ? entity.getMenuItem().getSaleUnitType() : null,
                 entity.getQuantity(),
                 entity.getWeightQuantity(),
                 entity.getNetAmount(),

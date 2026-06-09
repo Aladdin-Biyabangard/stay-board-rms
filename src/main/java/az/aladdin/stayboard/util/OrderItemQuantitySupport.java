@@ -4,7 +4,7 @@ import az.aladdin.stayboard.entity.MenuItemEntity;
 import az.aladdin.stayboard.entity.OrderItemEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.MessageKey;
-import az.aladdin.stayboard.model.enums.InventoryUnitType;
+import az.aladdin.stayboard.model.enums.SaleUnitType;
 
 import java.math.BigDecimal;
 
@@ -14,7 +14,8 @@ public final class OrderItemQuantitySupport {
     }
 
     public static void validate(MenuItemEntity menuItem, long quantity, BigDecimal weightQuantity) {
-        if (menuItem.getSaleUnitType() == InventoryUnitType.WEIGHT) {
+        SaleUnitType saleUnitType = menuItem.getSaleUnitType() != null ? menuItem.getSaleUnitType() : SaleUnitType.PIECE;
+        if (saleUnitType.isWeightBased()) {
             if (weightQuantity == null || weightQuantity.signum() <= 0) {
                 throw ApiExceptions.badRequest(MessageKey.BAD_REQUEST_WEIGHT_QUANTITY_REQUIRED);
             }
@@ -27,9 +28,13 @@ public final class OrderItemQuantitySupport {
 
     public static BigDecimal effectiveServingQuantity(OrderItemEntity orderItem) {
         MenuItemEntity menuItem = orderItem.getMenuItem();
-        if (menuItem != null && menuItem.getSaleUnitType() == InventoryUnitType.WEIGHT) {
-            return orderItem.getWeightQuantity() != null ? orderItem.getWeightQuantity() : BigDecimal.ZERO;
-        }
-        return BigDecimal.valueOf(orderItem.getQuantity());
+        SaleUnitType saleUnitType = menuItem != null && menuItem.getSaleUnitType() != null
+                ? menuItem.getSaleUnitType()
+                : SaleUnitType.PIECE;
+        return OrderItemPricingSupport.lineMultiplier(
+                saleUnitType,
+                orderItem.getQuantity(),
+                orderItem.getWeightQuantity()
+        );
     }
 }

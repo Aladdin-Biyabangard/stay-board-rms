@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.TableEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.EntityKey;
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class TableService {
+public class TableService extends HotelAwareService {
 
     private final TableRepository tableRepository;
     private final OrderRepository orderRepository;
@@ -30,7 +30,7 @@ public class TableService {
 
     @Transactional
     public TableResponse create(CreateTableRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         TableEntity entity = tableMapper.toEntity(request, hotelId);
         return tableMapper.toResponse(tableRepository.save(entity));
     }
@@ -56,7 +56,7 @@ public class TableService {
 
     @Transactional(readOnly = true)
     public Page<TableResponse> search(TableSearchCriteria criteria, Pageable pageable) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return tableRepository.findAll(TableSpecification.withCriteria(hotelId, criteria), pageable)
                 .map(tableMapper::toResponse);
     }
@@ -74,7 +74,7 @@ public class TableService {
     }
 
     private TableEntity getEntityOrThrow(Long id) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return tableRepository.findByIdAndHotelId(id, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.TABLE));
     }

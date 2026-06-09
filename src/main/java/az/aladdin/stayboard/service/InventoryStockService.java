@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.InventoryItemEntity;
 import az.aladdin.stayboard.entity.InventoryTransactionEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
@@ -22,7 +22,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InventoryStockService {
+public class InventoryStockService extends HotelAwareService {
 
     private final InventoryItemRepository inventoryItemRepository;
     private final InventoryTransactionRepository inventoryTransactionRepository;
@@ -36,7 +36,7 @@ public class InventoryStockService {
             String referenceType,
             String notes
     ) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         InventoryItemEntity item = inventoryItemRepository.findByIdAndHotelId(inventoryItemId, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.INVENTORY_ITEM));
 

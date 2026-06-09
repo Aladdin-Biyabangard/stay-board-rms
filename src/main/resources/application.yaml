@@ -17,3 +17,7 @@ spring:
 
 url:
   stay-board: ${STAY_BOARD_URL:http://localhost:8089}
+
+stay-board:
+  internal-api-key: internal-rms-pms-key
+  service-token: ${STAY_BOARD_SERVICE_TOKEN:}

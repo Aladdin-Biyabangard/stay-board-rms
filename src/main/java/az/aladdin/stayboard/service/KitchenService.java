@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.OrderItemEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.EntityKey;
@@ -23,15 +23,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class KitchenService {
+public class KitchenService extends HotelAwareService {
 
     private final OrderItemRepository orderItemRepository;
     private final KitchenTicketMapper kitchenTicketMapper;
     private final InventoryConsumptionService inventoryConsumptionService;
+    private final OrderStatusSyncService orderStatusSyncService;
 
     @Transactional(readOnly = true)
     public Page<KitchenTicketResponse> searchTickets(KitchenTicketSearchCriteria criteria, Pageable pageable) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         Pageable sortedPageable = pageable.getSort().isSorted()
                 ? pageable
                 : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.ASC, "createdAt"));
@@ -55,11 +56,13 @@ public class KitchenService {
         }
 
         entity.setOrderItemStatus(targetStatus);
-        return kitchenTicketMapper.toResponse(orderItemRepository.save(entity));
+        entity = orderItemRepository.save(entity);
+        orderStatusSyncService.syncFromOrderItems(entity.getOrder());
+        return kitchenTicketMapper.toResponse(entity);
     }
 
     private OrderItemEntity getEntityOrThrow(Long id) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return orderItemRepository.findByIdAndHotelId(id, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.ORDER_ITEM));
     }

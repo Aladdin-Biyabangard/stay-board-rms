@@ -70,7 +70,8 @@ public class SecurityConfig {
                         }
                     }
 
-                    authorize.anyRequest().authenticated();
+                    // Guest users may only access endpoints that explicitly include GUEST in ApiEndpoint.
+                    authorize.anyRequest().hasAnyRole(ApiEndpoint.staffRoleNames());
                 })
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(localizedSecurityErrorHandler)

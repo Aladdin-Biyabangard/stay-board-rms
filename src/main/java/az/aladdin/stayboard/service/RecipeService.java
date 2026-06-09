@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.InventoryItemEntity;
 import az.aladdin.stayboard.entity.MenuItemEntity;
 import az.aladdin.stayboard.entity.RecipeEntity;
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class RecipeService {
+public class RecipeService extends HotelAwareService {
 
     private final RecipeRepository recipeRepository;
     private final MenuItemRepository menuItemRepository;
@@ -33,7 +33,7 @@ public class RecipeService {
 
     @Transactional
     public RecipeResponse create(CreateRecipeRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         MenuItemEntity menuItem = getMenuItemOrThrow(request.menuItemId(), hotelId);
         InventoryItemEntity inventoryItem = getInventoryItemOrThrow(request.inventoryItemId(), hotelId);
 
@@ -48,7 +48,7 @@ public class RecipeService {
 
     @Transactional
     public RecipeResponse update(Long id, UpdateRecipeRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         RecipeEntity entity = getEntityOrThrow(id);
         MenuItemEntity menuItem = getMenuItemOrThrow(request.menuItemId(), hotelId);
         InventoryItemEntity inventoryItem = getInventoryItemOrThrow(request.inventoryItemId(), hotelId);
@@ -63,7 +63,7 @@ public class RecipeService {
 
     @Transactional(readOnly = true)
     public Page<RecipeResponse> search(RecipeSearchCriteria criteria, Pageable pageable) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return recipeRepository.findAll(RecipeSpecification.withCriteria(hotelId, criteria), pageable)
                 .map(recipeMapper::toResponse);
     }
@@ -74,7 +74,7 @@ public class RecipeService {
     }
 
     private RecipeEntity getEntityOrThrow(Long id) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         return recipeRepository.findByIdAndHotelId(id, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.RECIPE));
     }

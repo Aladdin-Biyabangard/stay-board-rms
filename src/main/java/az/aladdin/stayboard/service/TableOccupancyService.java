@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.GuestInformation;
 import az.aladdin.stayboard.entity.ReservationMainInfo;
 import az.aladdin.stayboard.entity.TableEntity;
@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class TableOccupancyService {
+public class TableOccupancyService extends HotelAwareService {
 
     private final TableOccupancyRepository tableOccupancyRepository;
     private final TableRepository tableRepository;
@@ -43,7 +43,7 @@ public class TableOccupancyService {
 
     @Transactional
     public TableOccupancyResponse create(CreateTableOccupancyRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         OccupancySourceType sourceType = resolveSourceType(request.sourceType());
         GuestTableAccess.ensureGuestCanReserve();
 
@@ -94,7 +94,7 @@ public class TableOccupancyService {
 
     @Transactional(readOnly = true)
     public Page<TableOccupancyResponse> search(TableOccupancySearchCriteria criteria, Pageable pageable) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         GuestOrderAccess.Scope guestScope = GuestOrderAccess.currentGuestScope().orElse(null);
         TableOccupancySearchCriteria normalizedCriteria = normalizeSearchCriteria(criteria, hotelId);
         return tableOccupancyRepository.findAll(
@@ -117,7 +117,7 @@ public class TableOccupancyService {
     }
 
     private TableOccupancyEntity getEntityOrThrow(Long id) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         TableOccupancyEntity entity = tableOccupancyRepository.findByIdAndHotelId(id, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.TABLE_OCCUPANCY));
         if (AuthenticatedUserSupport.isGuest()) {

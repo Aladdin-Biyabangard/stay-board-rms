@@ -2,7 +2,7 @@ package az.aladdin.stayboard.mapper;
 
 import az.aladdin.stayboard.entity.MenuCategoryEntity;
 import az.aladdin.stayboard.entity.MenuItemEntity;
-import az.aladdin.stayboard.model.enums.InventoryUnitType;
+import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.request.CreateMenuItemRequest;
 import az.aladdin.stayboard.model.request.PatchMenuItemRequest;
 import az.aladdin.stayboard.model.request.UpdateMenuItemRequest;
@@ -26,7 +26,7 @@ public class MenuItemMapper {
                 .price(request.price())
                 .taxRate(request.taxRate())
                 .taxType(request.taxType())
-                .saleUnitType(request.saleUnitType() != null ? request.saleUnitType() : InventoryUnitType.COUNT)
+                .saleUnitType(request.saleUnitType() != null ? request.saleUnitType() : SaleUnitType.PIECE)
                 .menuCategory(menuCategory)
                 .build();
     }

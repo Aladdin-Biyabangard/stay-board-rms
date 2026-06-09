@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.service;
 
-import az.aladdin.stayboard.context.HotelContextHolder;
+import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.OrderEntity;
 import az.aladdin.stayboard.entity.TableEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TableMergeService {
+public class TableMergeService extends HotelAwareService {
 
     private static final List<OrderStatus> TERMINAL_ORDER_STATUSES = List.of(
             OrderStatus.COMPLETED,
@@ -35,7 +35,7 @@ public class TableMergeService {
 
     @Transactional
     public TableMergeGroupResponse mergeTables(MergeTablesRequest request) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         Set<Long> requestedIds = new HashSet<>(request.tableIds());
 
         if (!requestedIds.contains(request.primaryTableId())) {
@@ -61,7 +61,7 @@ public class TableMergeService {
 
     @Transactional
     public void unmergeTables(Long tableId) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         TableEntity table = tableRepository.findByIdAndHotelId(tableId, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.TABLE));
 
@@ -78,7 +78,7 @@ public class TableMergeService {
 
     @Transactional(readOnly = true)
     public TableMergeGroupResponse getMergeGroup(Long tableId) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         TableEntity table = tableRepository.findByIdAndHotelId(tableId, hotelId)
                 .orElseThrow(() -> ApiExceptions.notFound(EntityKey.TABLE));
 
@@ -138,7 +138,7 @@ public class TableMergeService {
             Long primaryTableId,
             List<TableEntity> tables
     ) {
-        Long hotelId = HotelContextHolder.getHotelIdOrThrow();
+        Long hotelId = getCurrentHotelId();
         List<Long> tableIds = tables.stream().map(TableEntity::getId).toList();
 
         List<OrderEntity> activeOrders = orderRepository.findActiveOrdersByTableIds(

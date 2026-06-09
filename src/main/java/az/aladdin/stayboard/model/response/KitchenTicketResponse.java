@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.model.response;
 
-import az.aladdin.stayboard.model.enums.InventoryUnitType;
+import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.enums.OrderItemStatus;
 
 import java.math.BigDecimal;
@@ -15,7 +15,7 @@ public record KitchenTicketResponse(
         String roomNumber,
         Long menuItemId,
         String menuItemName,
-        InventoryUnitType saleUnitType,
+        SaleUnitType saleUnitType,
         long quantity,
         BigDecimal weightQuantity,
         OrderItemStatus orderItemStatus,

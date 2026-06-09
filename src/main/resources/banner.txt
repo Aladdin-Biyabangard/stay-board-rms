@@ -1,0 +1,11 @@
+${AnsiColor.BLUE}
+  ____  __  __ ____  
+ |  _ \|  \/  / ___| 
+ | |_) | |\/| \___ \ 
+ |  _ <| |  | |___) |
+ |_| \_\_|  |_|____/ 
+                     
+${AnsiStyle.NORMAL}
+
+${AnsiColor.DEFAULT} :: ${AnsiColor.39} ${app.name} ${AnsiColor.DEFAULT}${application.formatted-version} ::
+${AnsiColor.DEFAULT} :: ${AnsiColor.71} Spring Boot${AnsiColor.DEFAULT}${spring-boot.formatted-version} ::

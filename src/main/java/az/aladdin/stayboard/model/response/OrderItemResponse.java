@@ -1,6 +1,7 @@
 package az.aladdin.stayboard.model.response;
 
 import az.aladdin.stayboard.model.enums.OrderItemStatus;
+import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.enums.TaxType;
 
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ public record OrderItemResponse(
         String orderNumber,
         Long menuItemId,
         String menuItemName,
+        SaleUnitType saleUnitType,
         long quantity,
         BigDecimal weightQuantity,
         BigDecimal netAmount,

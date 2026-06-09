@@ -1,22 +1,21 @@
 package az.aladdin.stayboard.service;
 
 import az.aladdin.stayboard.client.StayBoardFolioClient;
-import az.aladdin.stayboard.entity.MenuItemEntity;
+import az.aladdin.stayboard.config.PmsServiceAuthProperties;
+import az.aladdin.stayboard.security.AuthenticatedUserSupport;
 import az.aladdin.stayboard.entity.OrderEntity;
 import az.aladdin.stayboard.entity.OrderItemEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.MessageKey;
-import az.aladdin.stayboard.model.enums.InventoryUnitType;
-import az.aladdin.stayboard.model.enums.TaxType;
 import az.aladdin.stayboard.model.request.folio.AddFolioChargeRequest;
 import az.aladdin.stayboard.model.request.folio.VoidFolioChargeRequest;
 import az.aladdin.stayboard.model.response.folio.FolioChargeResponse;
 import az.aladdin.stayboard.repository.OrderItemRepository;
+import az.aladdin.stayboard.util.OrderItemPricingSupport;
+import az.aladdin.stayboard.util.OrderItemPricingSupport.FolioChargePosting;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -28,6 +27,7 @@ public class OrderItemFolioSyncService {
 
     private final StayBoardFolioClient stayBoardFolioClient;
     private final OrderItemRepository orderItemRepository;
+    private final PmsServiceAuthProperties pmsServiceAuthProperties;
 
     public void postCharge(OrderItemEntity orderItem) {
         OrderEntity order = orderItem.getOrder();
@@ -79,49 +79,30 @@ public class OrderItemFolioSyncService {
     }
 
     private boolean shouldSyncToFolio(OrderEntity order) {
-        return order != null
-                && order.getRoomNumber() != null
-                && !order.getRoomNumber().isBlank();
+        if (order == null || order.getRoomNumber() == null || order.getRoomNumber().isBlank()) {
+            return false;
+        }
+        if (AuthenticatedUserSupport.isGuest()
+                && !pmsServiceAuthProperties.hasInternalApiKey()
+                && !pmsServiceAuthProperties.hasServiceToken()) {
+            return false;
+        }
+        return true;
     }
 
     private AddFolioChargeRequest buildChargeRequest(OrderItemEntity orderItem) {
-        MenuItemEntity menuItem = orderItem.getMenuItem();
         OrderEntity order = orderItem.getOrder();
-        int postingQuantity;
-        BigDecimal unitPrice;
-
-        if (menuItem != null && menuItem.getSaleUnitType() == InventoryUnitType.WEIGHT) {
-            postingQuantity = 1;
-            unitPrice = orderItem.getNetAmount() != null ? orderItem.getNetAmount() : BigDecimal.ZERO;
-        } else {
-            postingQuantity = Math.toIntExact(orderItem.getQuantity());
-            unitPrice = orderItem.getNetAmount() != null
-                    ? orderItem.getNetAmount().divide(BigDecimal.valueOf(orderItem.getQuantity()), 2, RoundingMode.HALF_UP)
-                    : BigDecimal.ZERO;
-        }
-
-        BigDecimal taxRate = orderItem.getTaxRate();
-        TaxType taxType = orderItem.getTaxType();
-        if (taxRate == null && menuItem != null) {
-            taxRate = menuItem.getTaxRate();
-        }
-        if (taxType == null && menuItem != null) {
-            taxType = menuItem.getTaxType();
-        }
-        if (taxType == null) {
-            taxType = TaxType.EXCLUDE;
-        }
-
-        String chargeName = menuItem != null ? menuItem.getItemName() : "Restaurant order";
+        FolioChargePosting posting = OrderItemPricingSupport.buildFolioPosting(orderItem);
+        String chargeName = orderItem.getMenuItem() != null ? orderItem.getMenuItem().getItemName() : "Restaurant order";
         String description = "Order #" + order.getOrderNumber() + " [RMS-OI:" + orderItem.getId() + "]";
 
         return AddFolioChargeRequest.builder()
                 .chargeName(chargeName)
                 .description(description)
-                .unitPrice(unitPrice)
-                .quantity(postingQuantity)
-                .taxRate(taxRate)
-                .taxType(taxType)
+                .unitPrice(posting.unitPrice())
+                .quantity(posting.quantity())
+                .taxRate(posting.taxRate())
+                .taxType(posting.taxType())
                 .build();
     }
 }
