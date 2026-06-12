@@ -1,4 +1,5 @@
-#.\scripts\build-and-push.ps1 -Command stay-board-rms-build-push -Tag v1.0.0
+# Windows: .\scripts\build-and-push -Command stay-board-rms-build-push -Tag v1.0.0
+# macOS/Linux: ./scripts/build-and-push -Command stay-board-rms-build-push -Tag v1.0.0
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("stay-board-rms-build-push")]
@@ -63,18 +64,30 @@ $backendImage = "$dockerRepoUrl/stay-board-rms:$Tag"
 
 Write-Host "Docker login check..." -ForegroundColor Cyan
 docker info | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "Docker daemon is not available. Please start Docker Desktop and try again."
+}
 
 Write-Host "Docker Hub login..." -ForegroundColor Cyan
 $dockerHubPassword | docker login --username $dockerHubUsername --password-stdin
+if ($LASTEXITCODE -ne 0) {
+    throw "Docker Hub login failed."
+}
 
 Write-Host "Building backend image: $backendImage" -ForegroundColor Yellow
 docker build `
   -t $backendImage `
   -f Dockerfile `
   .
+if ($LASTEXITCODE -ne 0) {
+    throw "Backend docker build failed. Image push skipped."
+}
 
 Write-Host "Pushing backend image..." -ForegroundColor Green
 docker push $backendImage
+if ($LASTEXITCODE -ne 0) {
+    throw "Backend docker push failed."
+}
 
 Write-Host ""
 Write-Host "Done." -ForegroundColor Green
