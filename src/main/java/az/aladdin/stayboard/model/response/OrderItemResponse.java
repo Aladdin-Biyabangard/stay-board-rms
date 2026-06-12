@@ -6,6 +6,7 @@ import az.aladdin.stayboard.model.enums.TaxType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record OrderItemResponse(
         Long id,
@@ -23,6 +24,7 @@ public record OrderItemResponse(
         BigDecimal taxRate,
         TaxType taxType,
         OrderItemStatus orderItemStatus,
+        List<OrderItemModifierResponse> modifiers,
         LocalDateTime createdAt,
         String createdBy,
         LocalDateTime updatedAt,

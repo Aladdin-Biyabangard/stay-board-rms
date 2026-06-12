@@ -8,6 +8,7 @@ import az.aladdin.stayboard.model.request.CreateOrderItemLineRequest;
 import az.aladdin.stayboard.model.request.CreateOrderItemRequest;
 import az.aladdin.stayboard.model.request.PatchOrderItemRequest;
 import az.aladdin.stayboard.model.request.UpdateOrderItemRequest;
+import az.aladdin.stayboard.model.response.OrderItemModifierResponse;
 import az.aladdin.stayboard.model.response.OrderItemResponse;
 import az.aladdin.stayboard.service.hotel.HotelTimeService;
 import lombok.RequiredArgsConstructor;
@@ -130,6 +131,14 @@ public class OrderItemMapper {
                 entity.getTaxRate(),
                 entity.getTaxType(),
                 entity.getOrderItemStatus(),
+                entity.getModifiers().stream()
+                        .map(modifier -> new OrderItemModifierResponse(
+                                modifier.getId(),
+                                modifier.getModifierGroupId(),
+                                modifier.getModifierName(),
+                                modifier.getPriceDelta()
+                        ))
+                        .toList(),
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getCreatedAt(), hotelId),
                 entity.getCreatedBy(),
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getUpdatedAt(), hotelId),

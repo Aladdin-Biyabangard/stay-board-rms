@@ -13,6 +13,8 @@ public final class MessageKey {
             "error.forbidden.guest_order_modification_not_allowed";
     public static final String FORBIDDEN_GUEST_TABLE_RESERVATION_NOT_ALLOWED =
             "error.forbidden.guest_table_reservation_not_allowed";
+    public static final String FORBIDDEN_GUEST_WAITLIST_NOT_ALLOWED =
+            "error.forbidden.guest_waitlist_not_allowed";
     public static final String HOTEL_CONTEXT_NOT_SET = "error.hotel_context_not_set";
 
     public static final String CONFLICT_MENU_CATEGORY_HAS_ITEMS = "error.conflict.menu_category_has_items";
@@ -37,6 +39,10 @@ public final class MessageKey {
     public static final String BAD_REQUEST_TABLE_RESERVATION_IN_PAST = "error.bad_request.table_reservation_in_past";
     public static final String BAD_REQUEST_TABLE_OCCUPANCY_SOURCE_REQUIRED = "error.bad_request.table_occupancy_source_required";
     public static final String BAD_REQUEST_TABLE_RESERVATION_BEYOND_STAY = "error.bad_request.table_reservation_beyond_stay";
+    public static final String BAD_REQUEST_INVALID_WAITLIST_STATUS_TRANSITION =
+            "error.bad_request.invalid_waitlist_status_transition";
+    public static final String BAD_REQUEST_WAITLIST_ENTRY_NOT_ACTIVE =
+            "error.bad_request.waitlist_entry_not_active";
 
     public static final String NOT_FOUND_IMAGE_NOT_IN_GALLERY = "error.not_found.image_not_in_gallery";
 
@@ -44,6 +50,15 @@ public final class MessageKey {
     public static final String CONFLICT_INVENTORY_ITEM_HAS_RECIPES = "error.conflict.inventory_item_has_recipes";
     public static final String CONFLICT_RECIPE_ALREADY_EXISTS = "error.conflict.recipe_already_exists";
     public static final String CONFLICT_TABLE_NOT_AVAILABLE = "error.conflict.table_not_available";
+    public static final String CONFLICT_WAITLIST_ALREADY_ACTIVE = "error.conflict.waitlist_already_active";
+    public static final String CONFLICT_MODIFIER_GROUP_IN_USE = "error.conflict.modifier_group_in_use";
+
+    public static final String BAD_REQUEST_INVALID_MODIFIER_OPTION = "error.bad_request.invalid_modifier_option";
+    public static final String BAD_REQUEST_INVALID_MODIFIER_GROUP = "error.bad_request.invalid_modifier_group";
+    public static final String BAD_REQUEST_MODIFIER_NOT_ALLOWED = "error.bad_request.modifier_not_allowed";
+    public static final String BAD_REQUEST_MODIFIER_SELECTION_REQUIRED = "error.bad_request.modifier_selection_required";
+    public static final String BAD_REQUEST_MODIFIER_SELECTION_MIN = "error.bad_request.modifier_selection_min";
+    public static final String BAD_REQUEST_MODIFIER_SELECTION_MAX = "error.bad_request.modifier_selection_max";
 
     private MessageKey() {
     }

@@ -5,7 +5,7 @@ import az.aladdin.stayboard.model.request.PatchOrderRequest;
 import az.aladdin.stayboard.model.request.UpdateOrderRequest;
 import az.aladdin.stayboard.model.request.search.OrderSearchCriteria;
 import az.aladdin.stayboard.model.response.OrderResponse;
-import az.aladdin.stayboard.service.OrderService;
+import az.aladdin.stayboard.service.order.OrderService;
 import az.aladdin.stayboard.util.PageResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

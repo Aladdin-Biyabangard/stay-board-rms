@@ -1,5 +1,6 @@
 package az.aladdin.stayboard.client;
 
+import az.aladdin.stayboard.port.ReservationPort;
 import az.aladdin.stayboard.config.FeignAuthConfig;
 import az.aladdin.stayboard.model.response.ReservationDetailResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
         url = "${url.stay-board}",
         configuration = FeignAuthConfig.class
 )
-public interface StayBoardReservationClient {
+public interface StayBoardReservationClient extends ReservationPort {
 
     @GetMapping("/v1/reservations/{id}")
     ReservationDetailResponse getReservation(@PathVariable Long id);

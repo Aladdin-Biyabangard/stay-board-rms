@@ -42,6 +42,8 @@ dependencies {
     implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
     runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+    implementation "com.github.librepdf:openpdf:${openpdfVersion}"
+    implementation "org.xhtmlrenderer:flying-saucer-pdf:${flyingSaucerVersion}"
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'

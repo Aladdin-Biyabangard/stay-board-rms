@@ -1,14 +1,9 @@
 package az.aladdin.stayboard.repository;
 
 import az.aladdin.stayboard.entity.MenuCategoryEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import az.aladdin.stayboard.repository.base.HotelAwareSpecificationRepository;
 
-import java.util.Optional;
-
-public interface MenuCategoryRepository extends JpaRepository<MenuCategoryEntity, Long>, JpaSpecificationExecutor<MenuCategoryEntity> {
-
-    Optional<MenuCategoryEntity> findByIdAndHotelId(Long id, Long hotelId);
+public interface MenuCategoryRepository extends HotelAwareSpecificationRepository<MenuCategoryEntity, Long> {
 
     boolean existsByIdAndHotelId(Long id, Long hotelId);
 }

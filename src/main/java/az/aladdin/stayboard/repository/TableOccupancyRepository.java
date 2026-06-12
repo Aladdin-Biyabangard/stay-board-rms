@@ -1,19 +1,15 @@
 package az.aladdin.stayboard.repository;
 
 import az.aladdin.stayboard.entity.TableOccupancyEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import az.aladdin.stayboard.repository.base.HotelAwareSpecificationRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
-public interface TableOccupancyRepository extends JpaRepository<TableOccupancyEntity, Long>, JpaSpecificationExecutor<TableOccupancyEntity> {
-
-    Optional<TableOccupancyEntity> findByIdAndHotelId(Long id, Long hotelId);
+public interface TableOccupancyRepository extends HotelAwareSpecificationRepository<TableOccupancyEntity, Long> {
 
     @Query("""
             SELECT o FROM TableOccupancyEntity o

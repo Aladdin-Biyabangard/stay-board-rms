@@ -3,7 +3,7 @@ package az.aladdin.stayboard.controller;
 import az.aladdin.stayboard.model.request.CreateTableOccupancyRequest;
 import az.aladdin.stayboard.model.request.search.TableOccupancySearchCriteria;
 import az.aladdin.stayboard.model.response.TableOccupancyResponse;
-import az.aladdin.stayboard.service.TableOccupancyService;
+import az.aladdin.stayboard.service.seating.TableOccupancyService;
 import az.aladdin.stayboard.util.PageResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

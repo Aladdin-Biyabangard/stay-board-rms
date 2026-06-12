@@ -1,6 +1,6 @@
 package az.aladdin.stayboard.config;
 
-import az.aladdin.stayboard.service.UtcDateTimeService;
+import az.aladdin.stayboard.service.common.UtcDateTimeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.stereotype.Component;

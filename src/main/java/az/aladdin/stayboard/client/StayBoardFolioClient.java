@@ -1,5 +1,6 @@
 package az.aladdin.stayboard.client;
 
+import az.aladdin.stayboard.port.FolioPort;
 import az.aladdin.stayboard.config.PmsServiceFeignAuthConfig;
 import az.aladdin.stayboard.model.request.folio.AddFolioChargeRequest;
 import az.aladdin.stayboard.model.request.folio.VoidFolioChargeRequest;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
         url = "${url.stay-board}",
         configuration = PmsServiceFeignAuthConfig.class
 )
-public interface StayBoardFolioClient {
+public interface StayBoardFolioClient extends FolioPort {
 
     @PostMapping("/v1/folios/charges/by-room")
     FolioChargeResponse addChargeByRoom(

@@ -1,5 +1,6 @@
 package az.aladdin.stayboard.model.request.folio;
 
+import az.aladdin.stayboard.model.enums.FolioChargeType;
 import az.aladdin.stayboard.model.enums.TaxType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,4 +21,5 @@ public class AddFolioChargeRequest {
     private int quantity;
     private BigDecimal taxRate;
     private TaxType taxType;
+    private FolioChargeType chargeType;
 }

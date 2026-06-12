@@ -3,6 +3,7 @@ package az.aladdin.stayboard.entity;
 import az.aladdin.stayboard.annotation.NoFieldLogging;
 import az.aladdin.stayboard.model.enums.OrderItemStatus;
 import az.aladdin.stayboard.model.enums.TaxType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -14,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,6 +32,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @EqualsAndHashCode(of = "id")
 @AllArgsConstructor
@@ -81,6 +85,10 @@ public class OrderItemEntity {
     private OrderItemStatus orderItemStatus;
 
     private Long folioChargeId;
+
+    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<OrderItemModifierEntity> modifiers = new ArrayList<>();
 
     @CreatedDate
     @Column(updatable = false)

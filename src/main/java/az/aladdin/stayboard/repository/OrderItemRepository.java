@@ -1,15 +1,11 @@
 package az.aladdin.stayboard.repository;
 
 import az.aladdin.stayboard.entity.OrderItemEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import az.aladdin.stayboard.repository.base.HotelAwareSpecificationRepository;
 
 import java.util.List;
-import java.util.Optional;
 
-public interface OrderItemRepository extends JpaRepository<OrderItemEntity, Long>, JpaSpecificationExecutor<OrderItemEntity> {
-
-    Optional<OrderItemEntity> findByIdAndHotelId(Long id, Long hotelId);
+public interface OrderItemRepository extends HotelAwareSpecificationRepository<OrderItemEntity, Long> {
 
     boolean existsByOrder_IdAndHotelId(Long orderId, Long hotelId);
 

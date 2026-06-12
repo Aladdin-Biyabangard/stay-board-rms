@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record UpdateMenuItemRequest(
         @NotBlank String itemName,
@@ -16,6 +17,9 @@ public record UpdateMenuItemRequest(
         @PositiveOrZero BigDecimal taxRate,
         TaxType taxType,
         @NotNull SaleUnitType saleUnitType,
-        @NotNull Long menuCategoryId
+        @NotNull Long menuCategoryId,
+        List<Long> allergenIds,
+        List<Long> dietaryTagIds,
+        List<Long> modifierGroupIds
 ) {
 }

@@ -47,6 +47,12 @@ public enum ApiEndpoint {
     TABLES_PATCH("/v1/rms/tables/**", HttpMethod.PATCH, MANAGER, ADMIN, DIRECTOR),
     TABLES_DELETE("/v1/rms/tables/**", HttpMethod.DELETE, MANAGER, ADMIN, DIRECTOR),
 
+    ORDER_RECEIPT_READ("/v1/rms/orders/*/receipt", HttpMethod.GET, guestPortalReadRoles()),
+    ORDER_RECEIPT_HTML("/v1/rms/orders/*/receipt/html", HttpMethod.GET, guestPortalReadRoles()),
+    ORDER_RECEIPT_PDF("/v1/rms/orders/*/receipt/pdf", HttpMethod.GET, guestPortalReadRoles()),
+    ORDER_KITCHEN_TICKET_READ("/v1/rms/orders/*/kitchen-ticket", HttpMethod.GET, kitchenRoles()),
+    ORDER_KITCHEN_TICKET_HTML("/v1/rms/orders/*/kitchen-ticket/html", HttpMethod.GET, kitchenRoles()),
+
     ORDERS_READ("/v1/rms/orders/**", HttpMethod.GET, guestPortalReadRoles()),
     ORDERS_WRITE("/v1/rms/orders/**", HttpMethod.POST, guestOrderWriteRoles()),
     ORDERS_UPDATE("/v1/rms/orders/**", HttpMethod.PUT, guestOrderWriteRoles()),
@@ -58,6 +64,9 @@ public enum ApiEndpoint {
     ORDER_ITEMS_UPDATE("/v1/rms/order-items/**", HttpMethod.PUT, guestOrderWriteRoles()),
     ORDER_ITEMS_PATCH("/v1/rms/order-items/**", HttpMethod.PATCH, guestOrderWriteRoles()),
     ORDER_ITEMS_DELETE("/v1/rms/order-items/**", HttpMethod.DELETE, guestOrderWriteRoles()),
+
+    KITCHEN_TICKET_PRINT_READ("/v1/rms/kitchen/tickets/*/print", HttpMethod.GET, kitchenRoles()),
+    KITCHEN_TICKET_PRINT_HTML("/v1/rms/kitchen/tickets/*/print/html", HttpMethod.GET, kitchenRoles()),
 
     KITCHEN_TICKETS_READ("/v1/rms/kitchen/tickets/**", HttpMethod.GET, kitchenRoles()),
     KITCHEN_TICKETS_UPDATE("/v1/rms/kitchen/tickets/*/status", HttpMethod.PATCH, kitchenRoles()),
@@ -75,11 +84,37 @@ public enum ApiEndpoint {
     RECIPES_UPDATE("/v1/rms/recipes/**", HttpMethod.PUT, MANAGER, ADMIN, DIRECTOR),
     RECIPES_DELETE("/v1/rms/recipes/**", HttpMethod.DELETE, MANAGER, ADMIN, DIRECTOR),
 
+    ALLERGENS_READ("/v1/rms/allergens/**", HttpMethod.GET, guestPortalReadRoles()),
+    ALLERGENS_WRITE("/v1/rms/allergens/**", HttpMethod.POST, MANAGER, ADMIN, DIRECTOR),
+    ALLERGENS_UPDATE("/v1/rms/allergens/**", HttpMethod.PUT, MANAGER, ADMIN, DIRECTOR),
+    ALLERGENS_PATCH("/v1/rms/allergens/**", HttpMethod.PATCH, MANAGER, ADMIN, DIRECTOR),
+    ALLERGENS_DELETE("/v1/rms/allergens/**", HttpMethod.DELETE, MANAGER, ADMIN, DIRECTOR),
+
+    DIETARY_TAGS_READ("/v1/rms/dietary-tags/**", HttpMethod.GET, guestPortalReadRoles()),
+    DIETARY_TAGS_WRITE("/v1/rms/dietary-tags/**", HttpMethod.POST, MANAGER, ADMIN, DIRECTOR),
+    DIETARY_TAGS_UPDATE("/v1/rms/dietary-tags/**", HttpMethod.PUT, MANAGER, ADMIN, DIRECTOR),
+    DIETARY_TAGS_PATCH("/v1/rms/dietary-tags/**", HttpMethod.PATCH, MANAGER, ADMIN, DIRECTOR),
+    DIETARY_TAGS_DELETE("/v1/rms/dietary-tags/**", HttpMethod.DELETE, MANAGER, ADMIN, DIRECTOR),
+
+    MODIFIER_GROUPS_READ("/v1/rms/modifier-groups/**", HttpMethod.GET, guestPortalReadRoles()),
+    MODIFIER_GROUPS_WRITE("/v1/rms/modifier-groups/**", HttpMethod.POST, MANAGER, ADMIN, DIRECTOR),
+    MODIFIER_GROUPS_UPDATE("/v1/rms/modifier-groups/**", HttpMethod.PUT, MANAGER, ADMIN, DIRECTOR),
+    MODIFIER_GROUPS_PATCH("/v1/rms/modifier-groups/**", HttpMethod.PATCH, MANAGER, ADMIN, DIRECTOR),
+    MODIFIER_GROUPS_DELETE("/v1/rms/modifier-groups/**", HttpMethod.DELETE, MANAGER, ADMIN, DIRECTOR),
+
     TABLE_OCCUPANCY_READ("/v1/rms/table-occupancies/**", HttpMethod.GET, guestPortalReadRoles()),
     TABLE_OCCUPANCY_WRITE("/v1/rms/table-occupancies/**", HttpMethod.POST, guestOccupancyWriteRoles()),
     TABLE_OCCUPANCY_UPDATE("/v1/rms/table-occupancies/**", HttpMethod.PUT, occupancyWriteRoles()),
     TABLE_OCCUPANCY_PATCH("/v1/rms/table-occupancies/**", HttpMethod.PATCH, occupancyWriteRoles()),
-    TABLE_OCCUPANCY_DELETE("/v1/rms/table-occupancies/**", HttpMethod.DELETE, guestOccupancyWriteRoles());
+    TABLE_OCCUPANCY_DELETE("/v1/rms/table-occupancies/**", HttpMethod.DELETE, guestOccupancyWriteRoles()),
+
+    WAITLIST_STATUS_UPDATE("/v1/rms/waitlist-entries/*/status", HttpMethod.PATCH, occupancyWriteRoles()),
+    WAITLIST_SEAT("/v1/rms/waitlist-entries/*/seat", HttpMethod.POST, occupancyWriteRoles()),
+    WAITLIST_READ("/v1/rms/waitlist-entries/**", HttpMethod.GET, guestPortalReadRoles()),
+    WAITLIST_WRITE("/v1/rms/waitlist-entries", HttpMethod.POST, guestOccupancyWriteRoles()),
+    WAITLIST_DELETE("/v1/rms/waitlist-entries/**", HttpMethod.DELETE, guestOccupancyWriteRoles()),
+
+    RMS_REPORTS_READ("/v1/rms/reports/**", HttpMethod.GET, staffRestaurantReadRoles());
 
     private final String pathPattern;
     private final HttpMethod httpMethod;

@@ -2,20 +2,30 @@ package az.aladdin.stayboard.mapper;
 
 import az.aladdin.stayboard.entity.MenuCategoryEntity;
 import az.aladdin.stayboard.entity.MenuItemEntity;
+import az.aladdin.stayboard.entity.MenuItemModifierGroupEntity;
 import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.request.CreateMenuItemRequest;
 import az.aladdin.stayboard.model.request.PatchMenuItemRequest;
 import az.aladdin.stayboard.model.request.UpdateMenuItemRequest;
+import az.aladdin.stayboard.model.response.AllergenResponse;
+import az.aladdin.stayboard.model.response.DietaryTagResponse;
 import az.aladdin.stayboard.model.response.MenuItemResponse;
+import az.aladdin.stayboard.model.response.ModifierGroupResponse;
 import az.aladdin.stayboard.service.hotel.HotelTimeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class MenuItemMapper {
 
     private final HotelTimeService hotelTimeService;
+    private final AllergenMapper allergenMapper;
+    private final DietaryTagMapper dietaryTagMapper;
+    private final ModifierGroupMapper modifierGroupMapper;
 
     public MenuItemEntity toEntity(CreateMenuItemRequest request, Long hotelId, MenuCategoryEntity menuCategory) {
         return MenuItemEntity.builder()
@@ -71,6 +81,23 @@ public class MenuItemMapper {
 
     public MenuItemResponse toResponse(MenuItemEntity entity) {
         Long hotelId = entity.getHotelId();
+
+        List<AllergenResponse> allergens = entity.getAllergens().stream()
+                .sorted(Comparator.comparing(a -> a.getAllergenName() != null ? a.getAllergenName() : ""))
+                .map(allergenMapper::toResponse)
+                .toList();
+
+        List<DietaryTagResponse> dietaryTags = entity.getDietaryTags().stream()
+                .sorted(Comparator.comparing(t -> t.getTagName() != null ? t.getTagName() : ""))
+                .map(dietaryTagMapper::toResponse)
+                .toList();
+
+        List<ModifierGroupResponse> modifierGroups = entity.getModifierGroupLinks().stream()
+                .sorted(Comparator.comparingInt(MenuItemModifierGroupEntity::getSortOrder))
+                .map(link -> modifierGroupMapper.toResponse(link.getModifierGroup()))
+                .filter(group -> group.active())
+                .toList();
+
         return new MenuItemResponse(
                 entity.getId(),
                 hotelId,
@@ -85,6 +112,9 @@ public class MenuItemMapper {
                 entity.getMenuCategory() != null ? entity.getMenuCategory().getCategoryName() : null,
                 entity.getPhotoUrls(),
                 entity.getMainImageUrl(),
+                allergens,
+                dietaryTags,
+                modifierGroups,
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getCreatedAt(), hotelId),
                 entity.getCreatedBy(),
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getUpdatedAt(), hotelId),

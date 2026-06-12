@@ -3,7 +3,7 @@ package az.aladdin.stayboard.controller;
 import az.aladdin.stayboard.model.request.UpdateKitchenTicketStatusRequest;
 import az.aladdin.stayboard.model.request.search.KitchenTicketSearchCriteria;
 import az.aladdin.stayboard.model.response.KitchenTicketResponse;
-import az.aladdin.stayboard.service.KitchenService;
+import az.aladdin.stayboard.service.kitchen.KitchenService;
 import az.aladdin.stayboard.util.PageResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

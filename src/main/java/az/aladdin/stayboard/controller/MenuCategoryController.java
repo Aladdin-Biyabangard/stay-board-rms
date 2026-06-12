@@ -5,7 +5,7 @@ import az.aladdin.stayboard.model.request.PatchMenuCategoryRequest;
 import az.aladdin.stayboard.model.request.UpdateMenuCategoryRequest;
 import az.aladdin.stayboard.model.request.search.MenuCategorySearchCriteria;
 import az.aladdin.stayboard.model.response.MenuCategoryResponse;
-import az.aladdin.stayboard.service.MenuCategoryService;
+import az.aladdin.stayboard.service.menu.MenuCategoryService;
 import az.aladdin.stayboard.util.PageResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

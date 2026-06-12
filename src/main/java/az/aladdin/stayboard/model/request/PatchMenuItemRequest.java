@@ -4,6 +4,7 @@ import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.enums.TaxType;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record PatchMenuItemRequest(
         String itemName,
@@ -13,6 +14,9 @@ public record PatchMenuItemRequest(
         BigDecimal taxRate,
         TaxType taxType,
         SaleUnitType saleUnitType,
-        Long menuCategoryId
+        Long menuCategoryId,
+        List<Long> allergenIds,
+        List<Long> dietaryTagIds,
+        List<Long> modifierGroupIds
 ) {
 }

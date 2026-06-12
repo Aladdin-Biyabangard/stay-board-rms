@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static az.aladdin.stayboard.service.TableAvailabilityService.DEFAULT_DINING_DURATION_MINUTES;
+import static az.aladdin.stayboard.service.seating.TableAvailabilityService.DEFAULT_DINING_DURATION_MINUTES;
 
 @Component
 public class TableAvailabilityResolver {

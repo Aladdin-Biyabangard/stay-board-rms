@@ -5,6 +5,7 @@ import az.aladdin.stayboard.model.enums.TaxType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 public record MenuItemResponse(
@@ -21,6 +22,9 @@ public record MenuItemResponse(
         String menuCategoryName,
         Set<String> photoUrls,
         String mainImageUrl,
+        List<AllergenResponse> allergens,
+        List<DietaryTagResponse> dietaryTags,
+        List<ModifierGroupResponse> modifierGroups,
         LocalDateTime createdAt,
         String createdBy,
         LocalDateTime updatedAt,

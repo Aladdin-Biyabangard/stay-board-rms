@@ -1,16 +1,12 @@
 package az.aladdin.stayboard.repository;
 
 import az.aladdin.stayboard.entity.TableEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import az.aladdin.stayboard.repository.base.HotelAwareSpecificationRepository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
-public interface TableRepository extends JpaRepository<TableEntity, Long>, JpaSpecificationExecutor<TableEntity> {
-
-    Optional<TableEntity> findByIdAndHotelId(Long id, Long hotelId);
+public interface TableRepository extends HotelAwareSpecificationRepository<TableEntity, Long> {
 
     List<TableEntity> findByIdInAndHotelId(Collection<Long> ids, Long hotelId);
 

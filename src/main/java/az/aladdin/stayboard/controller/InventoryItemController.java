@@ -6,7 +6,7 @@ import az.aladdin.stayboard.model.request.PatchInventoryItemRequest;
 import az.aladdin.stayboard.model.request.UpdateInventoryItemRequest;
 import az.aladdin.stayboard.model.request.search.InventoryItemSearchCriteria;
 import az.aladdin.stayboard.model.response.InventoryItemResponse;
-import az.aladdin.stayboard.service.InventoryItemService;
+import az.aladdin.stayboard.service.inventory.InventoryItemService;
 import az.aladdin.stayboard.util.PageResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

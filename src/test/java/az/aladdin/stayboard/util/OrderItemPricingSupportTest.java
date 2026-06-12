@@ -3,6 +3,7 @@ package az.aladdin.stayboard.util;
 import az.aladdin.stayboard.entity.MenuItemEntity;
 import az.aladdin.stayboard.entity.OrderEntity;
 import az.aladdin.stayboard.entity.OrderItemEntity;
+import az.aladdin.stayboard.entity.OrderItemModifierEntity;
 import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.enums.TaxType;
 import az.aladdin.stayboard.util.OrderItemPricingSupport.FolioChargePosting;
@@ -94,6 +95,46 @@ class OrderItemPricingSupportTest {
     }
 
     @Test
+    void calculatePieceWithModifierExcludeTax() {
+        MenuItemEntity menuItem = menuItem(SaleUnitType.PIECE, "10.00", "18", TaxType.EXCLUDE);
+        OrderItemAmounts amounts = OrderItemPricingSupport.calculate(menuItem, 2, null, new BigDecimal("3.00"));
+
+        assertEquals(new BigDecimal("26.00"), amounts.netAmount());
+        assertEquals(new BigDecimal("4.68"), amounts.taxAmount());
+        assertEquals(new BigDecimal("30.68"), amounts.grossAmount());
+    }
+
+    @Test
+    void folioPostingIncludesModifierUnitPriceForPieceItems() {
+        MenuItemEntity menuItem = menuItem(SaleUnitType.PIECE, "10.00", "18", TaxType.EXCLUDE);
+        OrderItemEntity orderItem = orderItem(menuItem, 2);
+        orderItem.getModifiers().add(modifier("Extra cheese", "2.00"));
+        orderItem.getModifiers().add(modifier("Bacon", "1.00"));
+
+        OrderItemPricingSupport.applyPricing(orderItem, menuItem, new BigDecimal("3.00"));
+        FolioChargePosting posting = OrderItemPricingSupport.buildFolioPosting(orderItem);
+
+        assertEquals(new BigDecimal("13.00"), posting.unitPrice());
+        assertEquals(2, posting.quantity());
+        assertEquals(TaxType.EXCLUDE, posting.taxType());
+    }
+
+    @Test
+    void folioPostingIncludesModifierForWeightItems() {
+        MenuItemEntity menuItem = menuItem(SaleUnitType.WEIGHT, "20.00", "18", TaxType.EXCLUDE);
+        OrderItemEntity orderItem = orderItem(menuItem, 1);
+        orderItem.setWeightQuantity(new BigDecimal("0.250"));
+        orderItem.getModifiers().add(modifier("Marinated", "4.00"));
+
+        OrderItemPricingSupport.applyPricing(orderItem, menuItem, new BigDecimal("4.00"));
+        FolioChargePosting posting = OrderItemPricingSupport.buildFolioPosting(orderItem);
+
+        assertEquals(new BigDecimal("6.00"), posting.unitPrice());
+        assertEquals(1, posting.quantity());
+        assertEquals(TaxType.EXCLUDE, posting.taxType());
+    }
+
+    @Test
     void calculateDefaultsToIncludeTaxWhenMenuTaxTypeMissing() {
         MenuItemEntity menuItem = menuItem(SaleUnitType.PIECE, "11.80", "18", null);
 
@@ -121,6 +162,14 @@ class OrderItemPricingSupportTest {
         orderItem.setOrder(order);
         orderItem.setMenuItem(menuItem);
         orderItem.setQuantity(quantity);
+        orderItem.setModifiers(new java.util.ArrayList<>());
         return orderItem;
+    }
+
+    private static OrderItemModifierEntity modifier(String name, String priceDelta) {
+        return OrderItemModifierEntity.builder()
+                .modifierName(name)
+                .priceDelta(new BigDecimal(priceDelta))
+                .build();
     }
 }

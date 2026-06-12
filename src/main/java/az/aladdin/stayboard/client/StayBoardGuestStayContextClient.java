@@ -1,5 +1,6 @@
 package az.aladdin.stayboard.client;
 
+import az.aladdin.stayboard.port.GuestStayContextPort;
 import az.aladdin.stayboard.config.FeignAuthConfig;
 import az.aladdin.stayboard.model.response.GuestStayContextResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
         url = "${url.stay-board}",
         configuration = FeignAuthConfig.class
 )
-public interface StayBoardGuestStayContextClient {
+public interface StayBoardGuestStayContextClient extends GuestStayContextPort {
 
     @GetMapping("/v1/guest-portal/guest-auth/stay-context")
     GuestStayContextResponse getStayContext();

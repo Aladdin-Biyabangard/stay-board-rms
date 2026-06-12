@@ -2,6 +2,7 @@ package az.aladdin.stayboard.util;
 
 import az.aladdin.stayboard.entity.MenuItemEntity;
 import az.aladdin.stayboard.entity.OrderItemEntity;
+import az.aladdin.stayboard.entity.OrderItemModifierEntity;
 import az.aladdin.stayboard.model.enums.SaleUnitType;
 import az.aladdin.stayboard.model.enums.TaxType;
 import az.aladdin.stayboard.model.pricing.TaxResult;
@@ -36,11 +37,15 @@ public final class OrderItemPricingSupport {
     }
 
     public static void applyPricing(OrderItemEntity entity, MenuItemEntity menuItem) {
+        applyPricing(entity, menuItem, BigDecimal.ZERO);
+    }
+
+    public static void applyPricing(OrderItemEntity entity, MenuItemEntity menuItem, BigDecimal modifierPriceDelta) {
         if (menuItem.getSaleUnitType().isWeightBased()) {
             entity.setQuantity(1L);
             entity.setWeightQuantity(normalizeWeight(entity.getWeightQuantity()));
         }
-        OrderItemAmounts amounts = calculate(menuItem, entity.getQuantity(), entity.getWeightQuantity());
+        OrderItemAmounts amounts = calculate(menuItem, entity.getQuantity(), entity.getWeightQuantity(), modifierPriceDelta);
         entity.setNetAmount(amounts.netAmount());
         entity.setTaxAmount(amounts.taxAmount());
         entity.setGrossAmount(amounts.grossAmount());
@@ -49,7 +54,18 @@ public final class OrderItemPricingSupport {
     }
 
     public static OrderItemAmounts calculate(MenuItemEntity menuItem, long quantity, BigDecimal weightQuantity) {
-        BigDecimal unitPrice = menuItem.getPrice() != null ? menuItem.getPrice() : BigDecimal.ZERO;
+        return calculate(menuItem, quantity, weightQuantity, BigDecimal.ZERO);
+    }
+
+    public static OrderItemAmounts calculate(
+            MenuItemEntity menuItem,
+            long quantity,
+            BigDecimal weightQuantity,
+            BigDecimal modifierPriceDelta
+    ) {
+        BigDecimal basePrice = menuItem.getPrice() != null ? menuItem.getPrice() : BigDecimal.ZERO;
+        BigDecimal modifierDelta = modifierPriceDelta != null ? modifierPriceDelta : BigDecimal.ZERO;
+        BigDecimal unitPrice = basePrice.add(modifierDelta);
         BigDecimal multiplier = lineMultiplier(menuItem.getSaleUnitType(), quantity, weightQuantity);
         BigDecimal lineAmount = unitPrice.multiply(multiplier).setScale(MONEY_SCALE, RoundingMode.HALF_UP);
         BigDecimal taxRate = menuItem.getTaxRate() != null ? menuItem.getTaxRate() : BigDecimal.ZERO;
@@ -64,16 +80,28 @@ public final class OrderItemPricingSupport {
         );
     }
 
+    public static BigDecimal sumModifierPriceDeltas(OrderItemEntity orderItem) {
+        if (orderItem.getModifiers() == null || orderItem.getModifiers().isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+        return orderItem.getModifiers().stream()
+                .map(OrderItemModifierEntity::getPriceDelta)
+                .map(delta -> delta != null ? delta : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     public static FolioChargePosting buildFolioPosting(OrderItemEntity orderItem) {
         MenuItemEntity menuItem = orderItem.getMenuItem();
         if (menuItem == null) {
             return buildFolioPostingFromStoredAmounts(orderItem);
         }
 
+        BigDecimal modifierPriceDelta = sumModifierPriceDeltas(orderItem);
         OrderItemAmounts amounts = calculate(
                 menuItem,
                 orderItem.getQuantity(),
-                orderItem.getWeightQuantity()
+                orderItem.getWeightQuantity(),
+                modifierPriceDelta
         );
         SaleUnitType saleUnitType = menuItem.getSaleUnitType() != null ? menuItem.getSaleUnitType() : SaleUnitType.PIECE;
 
@@ -85,8 +113,9 @@ public final class OrderItemPricingSupport {
         }
 
         BigDecimal catalogUnitPrice = menuItem.getPrice() != null ? menuItem.getPrice() : BigDecimal.ZERO;
+        BigDecimal unitPrice = catalogUnitPrice.add(modifierPriceDelta);
         int postingQuantity = Math.toIntExact(orderItem.getQuantity());
-        return new FolioChargePosting(catalogUnitPrice, postingQuantity, amounts.taxRate(), amounts.taxType());
+        return new FolioChargePosting(unitPrice, postingQuantity, amounts.taxRate(), amounts.taxType());
     }
 
     private static FolioChargePosting buildFolioPostingFromStoredAmounts(OrderItemEntity orderItem) {

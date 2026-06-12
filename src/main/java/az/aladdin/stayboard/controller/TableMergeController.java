@@ -2,7 +2,7 @@ package az.aladdin.stayboard.controller;
 
 import az.aladdin.stayboard.model.request.MergeTablesRequest;
 import az.aladdin.stayboard.model.response.TableMergeGroupResponse;
-import az.aladdin.stayboard.service.TableMergeService;
+import az.aladdin.stayboard.service.seating.TableMergeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

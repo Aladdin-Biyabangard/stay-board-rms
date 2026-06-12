@@ -4,7 +4,7 @@ import az.aladdin.stayboard.model.request.CreateRecipeRequest;
 import az.aladdin.stayboard.model.request.UpdateRecipeRequest;
 import az.aladdin.stayboard.model.request.search.RecipeSearchCriteria;
 import az.aladdin.stayboard.model.response.RecipeResponse;
-import az.aladdin.stayboard.service.RecipeService;
+import az.aladdin.stayboard.service.inventory.RecipeService;
 import az.aladdin.stayboard.util.PageResponseUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

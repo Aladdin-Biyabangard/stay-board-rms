@@ -3,7 +3,7 @@ package az.aladdin.stayboard.service.hotel;
 import az.aladdin.stayboard.annotation.NoLogging;
 import az.aladdin.stayboard.client.StayBoardHotelClient;
 import az.aladdin.stayboard.model.response.HotelTimezoneResponse;
-import az.aladdin.stayboard.service.UtcDateTimeService;
+import az.aladdin.stayboard.service.common.UtcDateTimeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

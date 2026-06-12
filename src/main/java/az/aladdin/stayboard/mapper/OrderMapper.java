@@ -19,10 +19,10 @@ public class OrderMapper {
 
     private final HotelTimeService hotelTimeService;
 
-    public OrderEntity toEntity(CreateOrderRequest request, Long hotelId, TableEntity tableEntity) {
+    public OrderEntity toEntity(CreateOrderRequest request, Long hotelId, String orderNumber, TableEntity tableEntity) {
         return OrderEntity.builder()
                 .hotelId(hotelId)
-                .orderNumber(request.orderNumber())
+                .orderNumber(orderNumber)
                 .guestInformation(toGuestInformation(request.guestInformation()))
                 .tableEntity(tableEntity)
                 .roomNumber(request.roomNumber())
@@ -32,7 +32,6 @@ public class OrderMapper {
     }
 
     public void updateEntity(OrderEntity entity, UpdateOrderRequest request, TableEntity tableEntity) {
-        entity.setOrderNumber(request.orderNumber());
         entity.setGuestInformation(toGuestInformation(request.guestInformation()));
         entity.setTableEntity(tableEntity);
         entity.setRoomNumber(request.roomNumber());
@@ -41,9 +40,6 @@ public class OrderMapper {
     }
 
     public void patchEntity(OrderEntity entity, PatchOrderRequest request, TableEntity tableEntity) {
-        if (request.orderNumber() != null) {
-            entity.setOrderNumber(request.orderNumber());
-        }
         if (request.guestInformation() != null) {
             entity.setGuestInformation(toGuestInformation(request.guestInformation()));
         }
