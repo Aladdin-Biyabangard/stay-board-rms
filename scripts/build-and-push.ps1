@@ -74,8 +74,9 @@ if ($LASTEXITCODE -ne 0) {
     throw "Docker Hub login failed."
 }
 
-Write-Host "Building backend image: $backendImage" -ForegroundColor Yellow
+Write-Host "Building backend image (linux/amd64): $backendImage" -ForegroundColor Yellow
 docker build `
+  --platform linux/amd64 `
   -t $backendImage `
   -f Dockerfile `
   .

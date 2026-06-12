@@ -86,8 +86,8 @@ if ! echo "$dockerHubPassword" | docker login --username "$dockerHubUsername" --
   exit 1
 fi
 
-echo "Building backend image: $backendImage"
-if ! docker build -t "$backendImage" -f Dockerfile .; then
+echo "Building backend image (linux/amd64): $backendImage"
+if ! docker build --platform linux/amd64 -t "$backendImage" -f Dockerfile .; then
   echo "Backend docker build failed. Image push skipped." >&2
   exit 1
 fi
