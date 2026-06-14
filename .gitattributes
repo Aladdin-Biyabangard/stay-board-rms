@@ -1,6 +1,5 @@
 /gradlew text eol=lf
 *.bat text eol=crlf
 *.cmd text eol=crlf
-scripts/build-and-push text eol=lf
 scripts/build-and-push.sh text eol=lf
 *.jar binary
