@@ -72,13 +72,22 @@ jobs:
           script_stop: true
           command_timeout: 10m
           script: |
-            set -euo pipefail
+            set -eu
 
             TAG="${TAG:?TAG is required}"
-            DEPLOY_PATH="${DEPLOY_PATH:-${HOME}/hotel}"
             DOCKER_REPO="${DOCKER_REPO:-ingressgroup}"
             COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
             COMPOSE_SERVICE="${COMPOSE_SERVICE:-rms}"
+
+            if [ -z "${DEPLOY_PATH:-}" ]; then
+              if [ -n "${HOME:-}" ] && [ -d "${HOME}/hotel" ]; then
+                DEPLOY_PATH="${HOME}/hotel"
+              else
+                echo "DEPLOY_PATH secret is not set and ${HOME:-HOME}/hotel does not exist." >&2
+                echo "Add GitHub secret DEPLOY_PATH=/root/hotel" >&2
+                exit 1
+              fi
+            fi
 
             IMAGE="${DOCKER_REPO}/stay-board-rms:${TAG}"
             ENV_FILE="${DEPLOY_PATH}/.env"
@@ -87,17 +96,17 @@ jobs:
             echo "Deploy path: ${DEPLOY_PATH}"
             echo "Image: ${IMAGE}"
 
-            if [[ ! -d "$DEPLOY_PATH" ]]; then
+            if [ ! -d "$DEPLOY_PATH" ]; then
               echo "Deploy path not found: $DEPLOY_PATH" >&2
               exit 1
             fi
 
-            if [[ ! -f "$ENV_FILE" ]]; then
+            if [ ! -f "$ENV_FILE" ]; then
               echo ".env not found: $ENV_FILE" >&2
               exit 1
             fi
 
-            if [[ ! -f "${DEPLOY_PATH}/${COMPOSE_FILE}" ]]; then
+            if [ ! -f "${DEPLOY_PATH}/${COMPOSE_FILE}" ]; then
               echo "Compose file not found: ${DEPLOY_PATH}/${COMPOSE_FILE}" >&2
               exit 1
             fi
@@ -113,16 +122,16 @@ jobs:
             echo "RMS_IMAGE set to ${IMAGE}"
 
             if docker compose version >/dev/null 2>&1; then
-              COMPOSE=(docker compose)
+              docker compose -f "$COMPOSE_FILE" pull "$COMPOSE_SERVICE"
+              docker compose -f "$COMPOSE_FILE" up -d "$COMPOSE_SERVICE"
+              docker compose -f "$COMPOSE_FILE" ps "$COMPOSE_SERVICE"
             elif command -v docker-compose >/dev/null 2>&1; then
-              COMPOSE=(docker-compose)
+              docker-compose -f "$COMPOSE_FILE" pull "$COMPOSE_SERVICE"
+              docker-compose -f "$COMPOSE_FILE" up -d "$COMPOSE_SERVICE"
+              docker-compose -f "$COMPOSE_FILE" ps "$COMPOSE_SERVICE"
             else
               echo "docker compose is not installed on the server" >&2
               exit 1
             fi
-
-            "${COMPOSE[@]}" -f "$COMPOSE_FILE" pull "$COMPOSE_SERVICE"
-            "${COMPOSE[@]}" -f "$COMPOSE_FILE" up -d "$COMPOSE_SERVICE"
-            "${COMPOSE[@]}" -f "$COMPOSE_FILE" ps "$COMPOSE_SERVICE"
 
             echo "Deploy finished for ${IMAGE}"
