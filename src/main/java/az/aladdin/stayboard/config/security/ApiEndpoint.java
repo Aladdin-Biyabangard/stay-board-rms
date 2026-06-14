@@ -52,6 +52,7 @@ public enum ApiEndpoint {
     ORDER_RECEIPT_PDF("/v1/rms/orders/*/receipt/pdf", HttpMethod.GET, guestPortalReadRoles()),
     ORDER_KITCHEN_TICKET_READ("/v1/rms/orders/*/kitchen-ticket", HttpMethod.GET, kitchenRoles()),
     ORDER_KITCHEN_TICKET_HTML("/v1/rms/orders/*/kitchen-ticket/html", HttpMethod.GET, kitchenRoles()),
+    ORDER_KITCHEN_TICKET_PDF("/v1/rms/orders/*/kitchen-ticket/pdf", HttpMethod.GET, kitchenRoles()),
 
     ORDERS_READ("/v1/rms/orders/**", HttpMethod.GET, guestPortalReadRoles()),
     ORDERS_WRITE("/v1/rms/orders/**", HttpMethod.POST, guestOrderWriteRoles()),
@@ -67,6 +68,7 @@ public enum ApiEndpoint {
 
     KITCHEN_TICKET_PRINT_READ("/v1/rms/kitchen/tickets/*/print", HttpMethod.GET, kitchenRoles()),
     KITCHEN_TICKET_PRINT_HTML("/v1/rms/kitchen/tickets/*/print/html", HttpMethod.GET, kitchenRoles()),
+    KITCHEN_TICKET_PRINT_PDF("/v1/rms/kitchen/tickets/*/print/pdf", HttpMethod.GET, kitchenRoles()),
 
     KITCHEN_TICKETS_READ("/v1/rms/kitchen/tickets/**", HttpMethod.GET, kitchenRoles()),
     KITCHEN_TICKETS_UPDATE("/v1/rms/kitchen/tickets/*/status", HttpMethod.PATCH, kitchenRoles()),
@@ -101,6 +103,12 @@ public enum ApiEndpoint {
     MODIFIER_GROUPS_UPDATE("/v1/rms/modifier-groups/**", HttpMethod.PUT, MANAGER, ADMIN, DIRECTOR),
     MODIFIER_GROUPS_PATCH("/v1/rms/modifier-groups/**", HttpMethod.PATCH, MANAGER, ADMIN, DIRECTOR),
     MODIFIER_GROUPS_DELETE("/v1/rms/modifier-groups/**", HttpMethod.DELETE, MANAGER, ADMIN, DIRECTOR),
+
+    MODIFIER_OPTIONS_READ("/v1/rms/modifier-options/**", HttpMethod.GET, guestPortalReadRoles()),
+    MODIFIER_OPTIONS_WRITE("/v1/rms/modifier-options/**", HttpMethod.POST, MANAGER, ADMIN, DIRECTOR),
+    MODIFIER_OPTIONS_UPDATE("/v1/rms/modifier-options/**", HttpMethod.PUT, MANAGER, ADMIN, DIRECTOR),
+    MODIFIER_OPTIONS_PATCH("/v1/rms/modifier-options/**", HttpMethod.PATCH, MANAGER, ADMIN, DIRECTOR),
+    MODIFIER_OPTIONS_DELETE("/v1/rms/modifier-options/**", HttpMethod.DELETE, MANAGER, ADMIN, DIRECTOR),
 
     TABLE_OCCUPANCY_READ("/v1/rms/table-occupancies/**", HttpMethod.GET, guestPortalReadRoles()),
     TABLE_OCCUPANCY_WRITE("/v1/rms/table-occupancies/**", HttpMethod.POST, guestOccupancyWriteRoles()),

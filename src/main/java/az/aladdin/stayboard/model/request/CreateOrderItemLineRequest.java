@@ -12,6 +12,7 @@ public record CreateOrderItemLineRequest(
         @NotNull Long menuItemId,
         @Positive long quantity,
         @PositiveOrZero BigDecimal weightQuantity,
-        List<Long> modifierGroupIds
+        List<Long> modifierGroupIds,
+        List<Long> modifierOptionIds
 ) {
 }

@@ -12,6 +12,7 @@ import az.aladdin.stayboard.model.response.DietaryTagResponse;
 import az.aladdin.stayboard.model.response.MenuItemResponse;
 import az.aladdin.stayboard.model.response.ModifierGroupResponse;
 import az.aladdin.stayboard.service.hotel.HotelTimeService;
+import az.aladdin.stayboard.service.menu.ModifierOptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,7 @@ public class MenuItemMapper {
     private final AllergenMapper allergenMapper;
     private final DietaryTagMapper dietaryTagMapper;
     private final ModifierGroupMapper modifierGroupMapper;
+    private final ModifierOptionService modifierOptionService;
 
     public MenuItemEntity toEntity(CreateMenuItemRequest request, Long hotelId, MenuCategoryEntity menuCategory) {
         return MenuItemEntity.builder()
@@ -94,7 +96,10 @@ public class MenuItemMapper {
 
         List<ModifierGroupResponse> modifierGroups = entity.getModifierGroupLinks().stream()
                 .sorted(Comparator.comparingInt(MenuItemModifierGroupEntity::getSortOrder))
-                .map(link -> modifierGroupMapper.toResponse(link.getModifierGroup()))
+                .map(link -> modifierGroupMapper.toResponse(
+                        link.getModifierGroup(),
+                        modifierOptionService.listActiveByGroupId(link.getModifierGroup().getId())
+                ))
                 .filter(group -> group.active())
                 .toList();
 

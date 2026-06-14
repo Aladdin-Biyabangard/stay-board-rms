@@ -4,11 +4,13 @@ import az.aladdin.stayboard.entity.ModifierGroupEntity;
 import az.aladdin.stayboard.model.request.CreateModifierGroupRequest;
 import az.aladdin.stayboard.model.request.PatchModifierGroupRequest;
 import az.aladdin.stayboard.model.response.ModifierGroupResponse;
+import az.aladdin.stayboard.model.response.ModifierOptionResponse;
 import az.aladdin.stayboard.service.hotel.HotelTimeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -64,6 +66,10 @@ public class ModifierGroupMapper {
     }
 
     public ModifierGroupResponse toResponse(ModifierGroupEntity entity) {
+        return toResponse(entity, List.of());
+    }
+
+    public ModifierGroupResponse toResponse(ModifierGroupEntity entity, List<ModifierOptionResponse> options) {
         Long hotelId = entity.getHotelId();
         return new ModifierGroupResponse(
                 entity.getId(),
@@ -75,6 +81,7 @@ public class ModifierGroupMapper {
                 entity.isActive(),
                 entity.getSortOrder(),
                 entity.getPriceDelta() != null ? entity.getPriceDelta() : BigDecimal.ZERO,
+                options != null ? options : List.of(),
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getCreatedAt(), hotelId),
                 entity.getCreatedBy(),
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getUpdatedAt(), hotelId),

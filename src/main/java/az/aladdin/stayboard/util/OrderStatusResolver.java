@@ -54,6 +54,15 @@ public final class OrderStatusResolver {
             return OrderStatus.CANCELLED;
         }
 
+        if (slowestActive == OrderItemStatus.SERVED) {
+            boolean allServed = itemStatuses.stream()
+                    .filter(status -> status != null && status != OrderItemStatus.CANCELLED)
+                    .allMatch(status -> status == OrderItemStatus.SERVED);
+            if (allServed) {
+                return OrderStatus.COMPLETED;
+            }
+        }
+
         return ITEM_TO_ORDER.get(slowestActive);
     }
 }

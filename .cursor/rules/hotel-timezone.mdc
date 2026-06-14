@@ -1,0 +1,45 @@
+    ---
+    description: Use hotel timezone for all dates, times, and business-day logic
+    alwaysApply: true
+    ---
+
+    # Hotel timezone for dates and times
+
+    Stay-board is multi-property. Every feature that touches dates, times, “today”, business days, night audit, EOD, reports, or date filters must respect the **current hotel’s timezone** (`HotelEntity.timezone`, IANA id e.g. `Asia/Baku`), not the server default, JVM default, or the user’s browser offset alone.
+
+    ## Source of truth
+
+    - Resolve zone per hotel: `HotelTimeService.resolveHotelZoneId(hotelId)`.
+    - “Now” / “today” at the hotel: `HotelTimeService.nowAtHotel(hotelId)`, `todayAtHotel(hotelId)` (built on `UtcDateTimeService` + hotel zone).
+    - Convert between hotel-local and stored UTC: `startOfDayUtc`, `nextDayStartUtc`, `hotelLocalDateTimeToUtc`, `utcLocalDateTimeToHotelLocal`.
+    - After hotel timezone is updated, call `HotelTimeService.evictHotelZoneId(hotelId)` so the cache refreshes.
+
+    ## Conventions
+
+    | Concept | Rule |
+    |--------|------|
+    | Business / calendar dates (folios, charges, reports, EOD) | Treat `LocalDate` as **hotel-local** unless explicitly documented otherwise. |
+    | DB timestamps (`paymentDate`, `voidedAt`, audit, etc.) | Store/query in **UTC**; convert boundaries with `HotelTimeService` (half-open intervals `[utcStart, utcEndExclusive)`). |
+    | API inputs | `LocalDate` = hotel business date; `OffsetDateTime` = instant with offset — normalize via hotel zone before comparing to business days. |
+    | API responses | Include `timezone` (IANA string) when returning date ranges or timestamps that depend on hotel context. |
+    | “Current time” in code | Prefer `UtcDateTimeService` + `HotelTimeService`, not `LocalDate.now()` / `ZoneId.systemDefault()`. |
+
+    ## Do
+
+    - Use existing helpers: `FinancialReportDateRangeResolver` for report ranges; mirror its pattern for new date-range code.
+    - Default open-ended report ranges to `todayAtHotel(hotelId)`, not UTC today.
+    - Use `atZoneSameInstant(hotelZone)` when deriving hotel-local dates from `OffsetDateTime`.
+
+    ## Do not
+
+    - Use `ZoneId.systemDefault()`, `LocalDate.now()` without hotel zone, or hard-coded offsets for hotel-scoped logic.
+    - Assume UTC midnight equals hotel start-of-day.
+    - Mix hotel-local `LocalDateTime` with UTC DB columns without conversion through `HotelTimeService`.
+
+    ## New code checklist
+
+    1. Identify `hotelId` for the operation.
+    2. Decide: business date vs instant — map to hotel-local vs UTC storage accordingly.
+    3. Delegate conversions to `HotelTimeService` (or an existing resolver), don’t reimplement zone math.
+    4. Expose `timezone` in responses when users interpret dates in hotel local time.
+    5. Add tests that cross midnight in a non-UTC zone when behavior is date-boundary sensitive.

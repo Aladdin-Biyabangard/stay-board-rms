@@ -35,9 +35,9 @@ class OrderStatusResolverTest {
     }
 
     @Test
-    void derive_returnsServed_whenAllActiveItemsServed() {
+    void derive_returnsCompleted_whenAllActiveItemsServed() {
         assertEquals(
-                OrderStatus.SERVED,
+                OrderStatus.COMPLETED,
                 OrderStatusResolver.derive(List.of(OrderItemStatus.SERVED, OrderItemStatus.SERVED))
         );
     }

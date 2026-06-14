@@ -122,6 +122,17 @@ public class TableAvailabilityService extends HotelAwareService {
             LocalDateTime endUtc,
             Integer partySize
     ) {
+        return isTableReservable(hotelId, table, startUtc, endUtc, partySize, null);
+    }
+
+    public boolean isTableReservable(
+            Long hotelId,
+            TableEntity table,
+            LocalDateTime startUtc,
+            LocalDateTime endUtc,
+            Integer partySize,
+            Long excludeOccupancyId
+    ) {
         if (partySize != null && table.getMaxCapacity() < partySize) {
             return false;
         }
@@ -129,6 +140,11 @@ public class TableAvailabilityService extends HotelAwareService {
         List<TableOccupancyEntity> overlaps = tableOccupancyRepository.findOverlappingByTableIds(
                 hotelId, groupTableIds, startUtc, endUtc
         );
+        if (excludeOccupancyId != null) {
+            overlaps = overlaps.stream()
+                    .filter(occupancy -> !excludeOccupancyId.equals(occupancy.getId()))
+                    .toList();
+        }
         if (!overlaps.isEmpty()) {
             return false;
         }

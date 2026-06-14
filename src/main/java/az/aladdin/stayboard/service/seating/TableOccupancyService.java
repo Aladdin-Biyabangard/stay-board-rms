@@ -12,6 +12,10 @@ import az.aladdin.stayboard.exception.MessageKey;
 import az.aladdin.stayboard.mapper.TableOccupancyMapper;
 import az.aladdin.stayboard.model.enums.OccupancySourceType;
 import az.aladdin.stayboard.model.request.CreateTableOccupancyRequest;
+import az.aladdin.stayboard.model.request.GuestInformationRequest;
+import az.aladdin.stayboard.model.request.ReservationMainInfoRequest;
+import az.aladdin.stayboard.model.request.PatchTableOccupancyRequest;
+import az.aladdin.stayboard.model.request.UpdateTableOccupancyRequest;
 import az.aladdin.stayboard.model.request.search.TableOccupancySearchCriteria;
 import az.aladdin.stayboard.model.response.TableOccupancyResponse;
 import az.aladdin.stayboard.repository.TableOccupancyRepository;
@@ -88,6 +92,72 @@ public class TableOccupancyService extends HotelAwareService {
         return tableOccupancyMapper.toResponse(tableOccupancyRepository.save(entity));
     }
 
+    @Transactional
+    public TableOccupancyResponse update(Long id, UpdateTableOccupancyRequest request) {
+        TableOccupancyEntity entity = getEntityOrThrow(id);
+        ensureStaffCanModify(entity);
+        OccupancyContext context = resolveOccupancyContext(
+                entity.getHotelId(),
+                request.tableId(),
+                request.sourceType(),
+                request.startDateTime(),
+                request.endDateTime(),
+                request.partySize(),
+                request.reservationMainInfo(),
+                entity.getId()
+        );
+        tableOccupancyMapper.updateEntity(
+                entity,
+                request,
+                context.table(),
+                context.sourceType(),
+                context.reservationMainInfo(),
+                context.startUtc(),
+                context.endUtc()
+        );
+        return tableOccupancyMapper.toResponse(tableOccupancyRepository.save(entity));
+    }
+
+    @Transactional
+    public TableOccupancyResponse patch(Long id, PatchTableOccupancyRequest request) {
+        TableOccupancyEntity entity = getEntityOrThrow(id);
+        ensureStaffCanModify(entity);
+
+        Long tableId = request.tableId() != null ? request.tableId() : entity.getRestaurantTable().getId();
+        OccupancySourceType sourceType = request.sourceType() != null ? request.sourceType() : entity.getSourceType();
+        LocalDateTime startHotelLocal = request.startDateTime() != null
+                ? request.startDateTime()
+                : hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getStartDateTime(), entity.getHotelId());
+        LocalDateTime endHotelLocal = request.endDateTime() != null
+                ? request.endDateTime()
+                : hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getEndDateTime(), entity.getHotelId());
+        Integer partySize = request.partySize() != null ? request.partySize() : entity.getPartySize();
+        ReservationMainInfoRequest reservationRequest = request.reservationMainInfo() != null
+                ? request.reservationMainInfo()
+                : toReservationRequest(entity.getReservationMainInfo());
+
+        OccupancyContext context = resolveOccupancyContext(
+                entity.getHotelId(),
+                tableId,
+                sourceType,
+                startHotelLocal,
+                endHotelLocal,
+                partySize,
+                reservationRequest,
+                entity.getId()
+        );
+        tableOccupancyMapper.patchEntity(
+                entity,
+                request,
+                context.table(),
+                context.sourceType(),
+                context.reservationMainInfo(),
+                context.startUtc(),
+                context.endUtc()
+        );
+        return tableOccupancyMapper.toResponse(tableOccupancyRepository.save(entity));
+    }
+
     @Transactional(readOnly = true)
     public TableOccupancyResponse get(Long id) {
         return tableOccupancyMapper.toResponse(getEntityOrThrow(id));
@@ -115,6 +185,74 @@ public class TableOccupancyService extends HotelAwareService {
             }
         }
         tableOccupancyRepository.delete(entity);
+    }
+
+    private OccupancyContext resolveOccupancyContext(
+            Long hotelId,
+            Long tableId,
+            OccupancySourceType sourceType,
+            LocalDateTime startHotelLocal,
+            LocalDateTime endHotelLocal,
+            Integer partySize,
+            ReservationMainInfoRequest reservationMainInfoRequest,
+            Long excludeOccupancyId
+    ) {
+        if (endHotelLocal == null || startHotelLocal == null || !endHotelLocal.isAfter(startHotelLocal)) {
+            throw ApiExceptions.badRequest(MessageKey.BAD_REQUEST_INVALID_TABLE_OCCUPANCY_WINDOW);
+        }
+
+        LocalDateTime startUtc = hotelTimeService.hotelLocalDateTimeToUtc(startHotelLocal, hotelId);
+        LocalDateTime endUtc = hotelTimeService.hotelLocalDateTimeToUtc(endHotelLocal, hotelId);
+
+        Long reservationId = reservationMainInfoRequest != null
+                ? reservationMainInfoRequest.reservationId()
+                : null;
+        guestReservationWindowService.ensureWithinStayWindow(reservationId, startHotelLocal, endHotelLocal);
+
+        TableEntity table = tableRepository.findByIdAndHotelId(tableId, hotelId)
+                .orElseThrow(() -> ApiExceptions.notFound(EntityKey.TABLE));
+
+        if (!tableAvailabilityService.isTableReservable(hotelId, table, startUtc, endUtc, partySize, excludeOccupancyId)) {
+            throw ApiExceptions.conflict(MessageKey.CONFLICT_TABLE_NOT_AVAILABLE);
+        }
+
+        ReservationMainInfo reservationMainInfo = guestReservationInfoResolver.resolveForCurrentUser(reservationMainInfoRequest);
+        return new OccupancyContext(table, sourceType, reservationMainInfo, startUtc, endUtc);
+    }
+
+    private ReservationMainInfoRequest toReservationRequest(ReservationMainInfo reservationMainInfo) {
+        if (reservationMainInfo == null) {
+            return null;
+        }
+        GuestInformationRequest guestRequest = null;
+        if (reservationMainInfo.guestInformation() != null) {
+            guestRequest = new GuestInformationRequest(
+                    reservationMainInfo.guestInformation().guestFirstName(),
+                    reservationMainInfo.guestInformation().guestLastName(),
+                    reservationMainInfo.guestInformation().guestEmail()
+            );
+        }
+        return new ReservationMainInfoRequest(
+                reservationMainInfo.reservationId(),
+                reservationMainInfo.confirmationNumber(),
+                reservationMainInfo.roomNumber(),
+                guestRequest
+        );
+    }
+
+    private record OccupancyContext(
+            TableEntity table,
+            OccupancySourceType sourceType,
+            ReservationMainInfo reservationMainInfo,
+            LocalDateTime startUtc,
+            LocalDateTime endUtc
+    ) {
+    }
+
+    private void ensureStaffCanModify(TableOccupancyEntity entity) {
+        if (AuthenticatedUserSupport.isGuest()) {
+            throw ApiExceptions.forbidden(MessageKey.FORBIDDEN_GUEST_TABLE_RESERVATION_NOT_ALLOWED);
+        }
     }
 
     private TableOccupancyEntity getEntityOrThrow(Long id) {

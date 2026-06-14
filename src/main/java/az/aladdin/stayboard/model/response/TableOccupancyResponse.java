@@ -13,6 +13,7 @@ public record TableOccupancyResponse(
         ReservationMainInfoResponse reservationMainInfo,
         LocalDateTime startDateTime,
         LocalDateTime endDateTime,
+        Integer partySize,
         LocalDateTime createdAt,
         String createdBy,
         boolean ownedByCurrentGuest

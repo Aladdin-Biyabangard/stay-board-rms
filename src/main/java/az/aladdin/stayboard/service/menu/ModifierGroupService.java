@@ -27,31 +27,32 @@ public class ModifierGroupService extends HotelAwareService {
     private final ModifierGroupRepository modifierGroupRepository;
     private final MenuItemModifierGroupRepository menuItemModifierGroupRepository;
     private final ModifierGroupMapper modifierGroupMapper;
+    private final ModifierOptionService modifierOptionService;
 
     @Transactional
     public ModifierGroupResponse create(CreateModifierGroupRequest request) {
         Long hotelId = getCurrentHotelId();
         ModifierGroupEntity entity = modifierGroupMapper.toEntity(request, hotelId);
-        return modifierGroupMapper.toResponse(modifierGroupRepository.save(entity));
+        return toResponseWithOptions(modifierGroupRepository.save(entity));
     }
 
     @Transactional
     public ModifierGroupResponse update(Long id, CreateModifierGroupRequest request) {
         ModifierGroupEntity entity = getEntityOrThrow(id);
         modifierGroupMapper.updateEntity(entity, request);
-        return modifierGroupMapper.toResponse(modifierGroupRepository.save(entity));
+        return toResponseWithOptions(modifierGroupRepository.save(entity));
     }
 
     @Transactional
     public ModifierGroupResponse patch(Long id, PatchModifierGroupRequest request) {
         ModifierGroupEntity entity = getEntityOrThrow(id);
         modifierGroupMapper.patchEntity(entity, request);
-        return modifierGroupMapper.toResponse(modifierGroupRepository.save(entity));
+        return toResponseWithOptions(modifierGroupRepository.save(entity));
     }
 
     @Transactional(readOnly = true)
     public ModifierGroupResponse get(Long id) {
-        return modifierGroupMapper.toResponse(getEntityOrThrow(id));
+        return toResponseWithOptions(getEntityOrThrow(id));
     }
 
     @Transactional(readOnly = true)
@@ -62,7 +63,7 @@ public class ModifierGroupService extends HotelAwareService {
                 pageable
         );
         var content = entityPage.getContent().stream()
-                .map(modifierGroupMapper::toResponse)
+                .map(this::toResponseWithOptions)
                 .toList();
         return new PageImpl<>(content, pageable, entityPage.getTotalElements());
     }
@@ -74,6 +75,13 @@ public class ModifierGroupService extends HotelAwareService {
             throw ApiExceptions.conflict(MessageKey.CONFLICT_MODIFIER_GROUP_IN_USE);
         }
         modifierGroupRepository.delete(entity);
+    }
+
+    private ModifierGroupResponse toResponseWithOptions(ModifierGroupEntity entity) {
+        return modifierGroupMapper.toResponse(
+                entity,
+                modifierOptionService.listActiveByGroupId(entity.getId())
+        );
     }
 
     private ModifierGroupEntity getEntityOrThrow(Long id) {

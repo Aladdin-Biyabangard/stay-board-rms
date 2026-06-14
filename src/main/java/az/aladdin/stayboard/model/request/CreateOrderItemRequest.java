@@ -20,6 +20,7 @@ public record CreateOrderItemRequest(
         BigDecimal taxRate,
         TaxType taxType,
         @NotNull OrderItemStatus orderItemStatus,
-        List<Long> modifierGroupIds
+        List<Long> modifierGroupIds,
+        List<Long> modifierOptionIds
 ) {
 }

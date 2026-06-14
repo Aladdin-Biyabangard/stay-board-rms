@@ -6,6 +6,8 @@ import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.EntityKey;
 import az.aladdin.stayboard.exception.MessageKey;
 import az.aladdin.stayboard.mapper.OrderMapper;
+import az.aladdin.stayboard.entity.OrderItemEntity;
+import az.aladdin.stayboard.model.enums.OrderItemStatus;
 import az.aladdin.stayboard.model.enums.OrderStatus;
 import az.aladdin.stayboard.model.request.CreateOrderRequest;
 import az.aladdin.stayboard.model.request.PatchOrderRequest;
@@ -31,6 +33,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
 @Service
@@ -47,6 +50,7 @@ public class OrderService extends HotelAwareService {
     private final TableAvailabilityService tableAvailabilityService;
     private final OrderItemService orderItemService;
     private final OrderNumberGenerator orderNumberGenerator;
+    private final OrderItemStatusChangeService orderItemStatusChangeService;
 
     @Transactional
     public OrderResponse create(CreateOrderRequest request) {
@@ -130,6 +134,7 @@ public class OrderService extends HotelAwareService {
         mutator.apply(entity, getCurrentHotelId());
         restoreGuestOwnership(entity, preservedGuestUserId);
         entity = orderRepository.save(entity);
+        cancelOrderItemsIfNeeded(entity, previousStatus);
         voidFolioChargesIfCancelled(entity, previousStatus);
         return orderMapper.toResponse(entity);
     }
@@ -176,6 +181,21 @@ public class OrderService extends HotelAwareService {
             return;
         }
         orderItemFolioSyncService.voidChargesForOrder(entity);
+    }
+
+    private void cancelOrderItemsIfNeeded(OrderEntity order, OrderStatus previousStatus) {
+        if (previousStatus == OrderStatus.CANCELLED || order.getOrderStatus() != OrderStatus.CANCELLED) {
+            return;
+        }
+        List<OrderItemEntity> items = orderItemRepository.findAllByOrder_IdAndHotelId(order.getId(), order.getHotelId());
+        for (OrderItemEntity item : items) {
+            if (item.getOrderItemStatus() == OrderItemStatus.CANCELLED) {
+                continue;
+            }
+            OrderItemStatus previousItemStatus = item.getOrderItemStatus();
+            orderItemStatusChangeService.applyStatusChange(item, previousItemStatus, OrderItemStatus.CANCELLED);
+            orderItemRepository.save(item);
+        }
     }
 
     private OrderSearchCriteria normalizeSearchCriteria(OrderSearchCriteria criteria, Long hotelId) {

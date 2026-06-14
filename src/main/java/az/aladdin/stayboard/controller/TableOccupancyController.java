@@ -1,6 +1,8 @@
 package az.aladdin.stayboard.controller;
 
 import az.aladdin.stayboard.model.request.CreateTableOccupancyRequest;
+import az.aladdin.stayboard.model.request.PatchTableOccupancyRequest;
+import az.aladdin.stayboard.model.request.UpdateTableOccupancyRequest;
 import az.aladdin.stayboard.model.request.search.TableOccupancySearchCriteria;
 import az.aladdin.stayboard.model.response.TableOccupancyResponse;
 import az.aladdin.stayboard.service.seating.TableOccupancyService;
@@ -14,8 +16,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -34,6 +38,16 @@ public class TableOccupancyController {
     @ResponseStatus(HttpStatus.CREATED)
     public TableOccupancyResponse create(@Valid @RequestBody CreateTableOccupancyRequest request) {
         return tableOccupancyService.create(request);
+    }
+
+    @PutMapping("/{id}")
+    public TableOccupancyResponse update(@PathVariable Long id, @Valid @RequestBody UpdateTableOccupancyRequest request) {
+        return tableOccupancyService.update(id, request);
+    }
+
+    @PatchMapping("/{id}")
+    public TableOccupancyResponse patch(@PathVariable Long id, @RequestBody PatchTableOccupancyRequest request) {
+        return tableOccupancyService.patch(id, request);
     }
 
     @GetMapping("/{id}")

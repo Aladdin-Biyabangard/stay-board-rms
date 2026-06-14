@@ -5,6 +5,8 @@ import az.aladdin.stayboard.entity.TableEntity;
 import az.aladdin.stayboard.entity.TableOccupancyEntity;
 import az.aladdin.stayboard.model.enums.OccupancySourceType;
 import az.aladdin.stayboard.model.request.CreateTableOccupancyRequest;
+import az.aladdin.stayboard.model.request.PatchTableOccupancyRequest;
+import az.aladdin.stayboard.model.request.UpdateTableOccupancyRequest;
 import az.aladdin.stayboard.model.response.TableOccupancyResponse;
 import az.aladdin.stayboard.security.AuthenticatedUserSupport;
 import az.aladdin.stayboard.security.GuestTableAccess;
@@ -37,7 +39,54 @@ public class TableOccupancyMapper {
                 .reservationMainInfo(reservationMainInfo)
                 .startDateTime(startUtc)
                 .endDateTime(endUtc)
+                .partySize(request.partySize())
                 .build();
+    }
+
+    public void updateEntity(
+            TableOccupancyEntity entity,
+            UpdateTableOccupancyRequest request,
+            TableEntity table,
+            OccupancySourceType sourceType,
+            ReservationMainInfo reservationMainInfo,
+            LocalDateTime startUtc,
+            LocalDateTime endUtc
+    ) {
+        entity.setSourceType(sourceType);
+        entity.setRestaurantTable(table);
+        entity.setReservationMainInfo(reservationMainInfo);
+        entity.setStartDateTime(startUtc);
+        entity.setEndDateTime(endUtc);
+        entity.setPartySize(request.partySize());
+    }
+
+    public void patchEntity(
+            TableOccupancyEntity entity,
+            PatchTableOccupancyRequest request,
+            TableEntity table,
+            OccupancySourceType sourceType,
+            ReservationMainInfo reservationMainInfo,
+            LocalDateTime startUtc,
+            LocalDateTime endUtc
+    ) {
+        if (request.sourceType() != null) {
+            entity.setSourceType(sourceType);
+        }
+        if (request.tableId() != null) {
+            entity.setRestaurantTable(table);
+        }
+        if (request.reservationMainInfo() != null) {
+            entity.setReservationMainInfo(reservationMainInfo);
+        }
+        if (request.startDateTime() != null) {
+            entity.setStartDateTime(startUtc);
+        }
+        if (request.endDateTime() != null) {
+            entity.setEndDateTime(endUtc);
+        }
+        if (request.partySize() != null) {
+            entity.setPartySize(request.partySize());
+        }
     }
 
     public TableOccupancyResponse toResponse(TableOccupancyEntity entity) {
@@ -56,6 +105,7 @@ public class TableOccupancyMapper {
                 reservationMainInfoMapper.toResponse(entity.getReservationMainInfo(), maskGuestDetails),
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getStartDateTime(), hotelId),
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getEndDateTime(), hotelId),
+                entity.getPartySize(),
                 hotelTimeService.utcLocalDateTimeToHotelLocal(entity.getCreatedAt(), hotelId),
                 entity.getCreatedBy(),
                 ownedByCurrentGuest

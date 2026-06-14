@@ -55,6 +55,16 @@ public class PrintController {
         return ResponseEntity.ok(printDocumentRenderer.renderKitchenTicketHtml(ticket));
     }
 
+    @GetMapping(value = "/orders/{orderId}/kitchen-ticket/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> getOrderKitchenTicketPdf(@PathVariable Long orderId) {
+        KitchenTicketPrintResponse ticket = kitchenTicketPrintService.generateForOrder(orderId);
+        String html = printDocumentRenderer.renderKitchenTicketHtml(ticket);
+        byte[] pdf = printDocumentRenderer.renderPdf(html);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"kitchen-ticket-" + ticket.orderNumber() + ".pdf\"")
+                .body(pdf);
+    }
+
     @GetMapping("/kitchen/tickets/{orderItemId}/print")
     public KitchenTicketPrintResponse getKitchenTicketForItem(@PathVariable Long orderItemId) {
         return kitchenTicketPrintService.generateForOrderItem(orderItemId);
@@ -64,5 +74,15 @@ public class PrintController {
     public ResponseEntity<String> getKitchenTicketForItemHtml(@PathVariable Long orderItemId) {
         KitchenTicketPrintResponse ticket = kitchenTicketPrintService.generateForOrderItem(orderItemId);
         return ResponseEntity.ok(printDocumentRenderer.renderKitchenTicketHtml(ticket));
+    }
+
+    @GetMapping(value = "/kitchen/tickets/{orderItemId}/print/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> getKitchenTicketForItemPdf(@PathVariable Long orderItemId) {
+        KitchenTicketPrintResponse ticket = kitchenTicketPrintService.generateForOrderItem(orderItemId);
+        String html = printDocumentRenderer.renderKitchenTicketHtml(ticket);
+        byte[] pdf = printDocumentRenderer.renderPdf(html);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"kitchen-ticket-item-" + orderItemId + ".pdf\"")
+                .body(pdf);
     }
 }

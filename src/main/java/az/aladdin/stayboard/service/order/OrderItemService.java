@@ -6,6 +6,7 @@ import az.aladdin.stayboard.entity.OrderItemEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.EntityKey;
 import az.aladdin.stayboard.mapper.OrderItemMapper;
+import az.aladdin.stayboard.model.enums.OrderItemStatus;
 import az.aladdin.stayboard.model.request.CreateOrderItemLineRequest;
 import az.aladdin.stayboard.model.request.CreateOrderItemRequest;
 import az.aladdin.stayboard.model.request.PatchOrderItemRequest;
@@ -46,6 +47,7 @@ public class OrderItemService extends HotelAwareService {
     private final OrderItemFolioSyncService orderItemFolioSyncService;
     private final OrderStatusSyncService orderStatusSyncService;
     private final ModifierSelectionService modifierSelectionService;
+    private final OrderItemStatusChangeService orderItemStatusChangeService;
 
     @Transactional
     public OrderItemResponse create(CreateOrderItemRequest request) {
@@ -55,8 +57,14 @@ public class OrderItemService extends HotelAwareService {
         MenuItemEntity menuItem = fetchMenuItemEntity(request.menuItemId(), hotelId);
         OrderItemQuantitySupport.validate(menuItem, request.quantity(), request.weightQuantity());
         OrderItemEntity entity = orderItemMapper.toEntity(request, hotelId, order, menuItem);
-        applyModifiersAndPricing(entity, menuItem, hotelId, request.modifierGroupIds());
+        applyModifiersAndPricing(entity, menuItem, hotelId, request.modifierGroupIds(), request.modifierOptionIds());
+        OrderItemStatus requestedStatus = request.orderItemStatus();
+        entity.setOrderItemStatus(OrderItemStatus.ORDERED);
         entity = orderItemRepository.save(entity);
+        if (requestedStatus != OrderItemStatus.ORDERED) {
+            orderItemStatusChangeService.applyStatusChange(entity, OrderItemStatus.ORDERED, requestedStatus);
+            entity = orderItemRepository.save(entity);
+        }
         syncOrderTotal(order);
         orderItemFolioSyncService.postCharge(entity);
         orderStatusSyncService.syncFromOrderItems(order);
@@ -78,7 +86,7 @@ public class OrderItemService extends HotelAwareService {
             MenuItemEntity menuItem = fetchMenuItemEntity(line.menuItemId(), hotelId);
             OrderItemQuantitySupport.validate(menuItem, line.quantity(), line.weightQuantity());
             OrderItemEntity entity = orderItemMapper.toEntityFromLine(line, hotelId, order, menuItem);
-            applyModifiersAndPricing(entity, menuItem, hotelId, line.modifierGroupIds());
+            applyModifiersAndPricing(entity, menuItem, hotelId, line.modifierGroupIds(), line.modifierOptionIds());
             entity = orderItemRepository.save(entity);
             orderItemFolioSyncService.postCharge(entity);
         }
@@ -144,6 +152,7 @@ public class OrderItemService extends HotelAwareService {
         OrderItemEntity entity = fetchOrderItemEntity(id);
         GuestOrderAccess.ensureGuestCanModifyOrder(entity.getOrder(), utcDateTimeService.now());
         OrderEntity order = entity.getOrder();
+        orderItemStatusChangeService.reverseInventoryIfConsumed(entity);
         orderItemFolioSyncService.voidCharge(entity);
         orderItemRepository.delete(entity);
         syncOrderTotal(order);
@@ -156,7 +165,9 @@ public class OrderItemService extends HotelAwareService {
     ) {
         OrderItemEntity entity = fetchOrderItemEntity(id);
         GuestOrderAccess.ensureGuestCanModifyOrder(entity.getOrder(), utcDateTimeService.now());
+        OrderItemStatus previousStatus = entity.getOrderItemStatus();
         OrderEntity order = mutator.apply(new OrderItemMutationContext(entity, getCurrentHotelId()));
+        applyStatusSideEffects(entity, previousStatus);
         entity = orderItemRepository.save(entity);
         if (order != null) {
             syncOrderTotal(order);
@@ -194,10 +205,11 @@ public class OrderItemService extends HotelAwareService {
             OrderItemEntity entity,
             MenuItemEntity menuItem,
             Long hotelId,
-            List<Long> modifierGroupIds
+            List<Long> modifierGroupIds,
+            List<Long> modifierOptionIds
     ) {
         List<OrderItemModifierEntity> modifiers = modifierSelectionService.buildOrderItemModifiers(
-                entity, menuItem, hotelId, modifierGroupIds
+                entity, menuItem, hotelId, modifierGroupIds, modifierOptionIds
         );
         entity.getModifiers().clear();
         entity.getModifiers().addAll(modifiers);
@@ -216,6 +228,14 @@ public class OrderItemService extends HotelAwareService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalAmount(total);
         orderRepository.save(order);
+    }
+
+    private void applyStatusSideEffects(OrderItemEntity entity, OrderItemStatus previousStatus) {
+        OrderItemStatus currentStatus = entity.getOrderItemStatus();
+        if (previousStatus == currentStatus) {
+            return;
+        }
+        orderItemStatusChangeService.applyStatusChange(entity, previousStatus, currentStatus);
     }
 
     private record OrderItemMutationContext(OrderItemEntity entity, Long hotelId) {

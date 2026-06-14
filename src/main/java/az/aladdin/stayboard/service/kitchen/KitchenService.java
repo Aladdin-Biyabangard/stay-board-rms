@@ -1,20 +1,18 @@
 package az.aladdin.stayboard.service.kitchen;
 
-import az.aladdin.stayboard.service.inventory.InventoryConsumptionService;
-import az.aladdin.stayboard.service.order.OrderStatusSyncService;
 import az.aladdin.stayboard.service.hotel.HotelAwareService;
 import az.aladdin.stayboard.entity.OrderItemEntity;
 import az.aladdin.stayboard.exception.ApiExceptions;
 import az.aladdin.stayboard.exception.EntityKey;
-import az.aladdin.stayboard.exception.MessageKey;
 import az.aladdin.stayboard.mapper.KitchenTicketMapper;
 import az.aladdin.stayboard.model.enums.OrderItemStatus;
 import az.aladdin.stayboard.model.request.UpdateKitchenTicketStatusRequest;
 import az.aladdin.stayboard.model.request.search.KitchenTicketSearchCriteria;
 import az.aladdin.stayboard.model.response.KitchenTicketResponse;
 import az.aladdin.stayboard.repository.OrderItemRepository;
+import az.aladdin.stayboard.service.order.OrderItemStatusChangeService;
+import az.aladdin.stayboard.service.order.OrderStatusSyncService;
 import az.aladdin.stayboard.specification.KitchenTicketSpecification;
-import az.aladdin.stayboard.util.OrderItemStatusTransition;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +27,7 @@ public class KitchenService extends HotelAwareService {
 
     private final OrderItemRepository orderItemRepository;
     private final KitchenTicketMapper kitchenTicketMapper;
-    private final InventoryConsumptionService inventoryConsumptionService;
+    private final OrderItemStatusChangeService orderItemStatusChangeService;
     private final OrderStatusSyncService orderStatusSyncService;
 
     @Transactional(readOnly = true)
@@ -48,16 +46,8 @@ public class KitchenService extends HotelAwareService {
         OrderItemStatus currentStatus = entity.getOrderItemStatus();
         OrderItemStatus targetStatus = request.orderItemStatus();
 
-        OrderItemStatusTransition.validate(currentStatus, targetStatus);
+        orderItemStatusChangeService.applyStatusChange(entity, currentStatus, targetStatus);
 
-        if (OrderItemStatusTransition.consumesInventory(currentStatus, targetStatus)) {
-            inventoryConsumptionService.consumeForOrderItem(entity);
-        }
-        if (OrderItemStatusTransition.reversesInventory(currentStatus, targetStatus)) {
-            inventoryConsumptionService.reverseForOrderItem(entity.getId());
-        }
-
-        entity.setOrderItemStatus(targetStatus);
         entity = orderItemRepository.save(entity);
         orderStatusSyncService.syncFromOrderItems(entity.getOrder());
         return kitchenTicketMapper.toResponse(entity);

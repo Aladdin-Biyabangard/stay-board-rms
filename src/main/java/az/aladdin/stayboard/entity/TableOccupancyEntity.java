@@ -66,6 +66,8 @@ public class TableOccupancyEntity {
     @Column(nullable = false)
     private LocalDateTime endDateTime;
 
+    private Integer partySize;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
