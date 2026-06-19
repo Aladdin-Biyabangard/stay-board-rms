@@ -17,6 +17,9 @@ public enum ApiEndpoint {
 
     ERROR_ENDPOINT("/error", null, PUBLIC),
 
+    INTERNAL_DB_IMPORT("/v1/rms/internal/db/import", HttpMethod.POST, PUBLIC),
+    INTERNAL_DB_EXPORT("/v1/rms/internal/db/export", HttpMethod.POST, PUBLIC),
+
     MENU_CATEGORY_IMAGE_UPLOAD("/v1/rms/menu-categories/*/images", HttpMethod.POST, MANAGER, ADMIN, DIRECTOR),
     MENU_CATEGORY_IMAGE_DELETE("/v1/rms/menu-categories/*/images", HttpMethod.DELETE, MANAGER, ADMIN, DIRECTOR),
     MENU_CATEGORY_SET_MAIN_IMAGE("/v1/rms/menu-categories/*/images/main", HttpMethod.PUT, MANAGER, ADMIN, DIRECTOR),

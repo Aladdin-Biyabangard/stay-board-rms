@@ -10,6 +10,7 @@ spring:
       - classpath:application-db.yaml
       - classpath:application-file.yml
       - classpath:application-cloud.yml
+      - classpath:application-email.yml
   messages:
     basename: messages
     encoding: UTF-8
@@ -21,3 +22,23 @@ url:
 stay-board:
   internal-api-key: internal-rms-pms-key
   service-token: ${STAY_BOARD_SERVICE_TOKEN:}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    general-requests-per-minute: ${RATE_LIMIT_GENERAL_PER_MINUTE:300}
+    auth-requests-per-minute: ${RATE_LIMIT_AUTH_PER_MINUTE:30}
+    burst-capacity: ${RATE_LIMIT_BURST_CAPACITY:50}
+
+db-backup:
+  access-key: ${DB_OPS_ACCESS_KEY:stayboard-db-ops}
+  mysql-path: ${MYSQL_PATH:mysql}
+  timeout-seconds: ${DB_BACKUP_TIMEOUT_SECONDS:7200}
+  zone: ${DB_BACKUP_ZONE:Asia/Baku}
+
+scheduler:
+  db-backup:
+    to-email: ${DB_BACKUP_EMAIL:aladdin19.11.21@gmail.com}
+    from-email: ${DB_BACKUP_FROM_EMAIL:info@ingress.az}
+    zone: ${DB_BACKUP_ZONE:Asia/Baku}
+    mysqldump-path: ${MYSQLDUMP_PATH:mysqldump}
+    mysql-path: ${MYSQL_PATH:mysql}
+    timeout-seconds: ${DB_BACKUP_TIMEOUT_SECONDS:7200}

@@ -60,6 +60,22 @@ public final class MessageKey {
     public static final String BAD_REQUEST_MODIFIER_SELECTION_MIN = "error.bad_request.modifier_selection_min";
     public static final String BAD_REQUEST_MODIFIER_SELECTION_MAX = "error.bad_request.modifier_selection_max";
 
+    public static final String BACKUP_PASSWORD_REQUIRED = "error.backup.password_required";
+    public static final String BACKUP_PASSWORD_NOT_CONFIGURED = "error.backup.password_not_configured";
+    public static final String BACKUP_PASSWORD_INVALID = "error.backup.password_invalid";
+    public static final String BACKUP_ACCESS_KEY_REQUIRED = "error.backup.access_key_required";
+    public static final String BACKUP_ACCESS_KEY_NOT_CONFIGURED = "error.backup.access_key_not_configured";
+    public static final String BACKUP_ACCESS_KEY_INVALID = "error.backup.access_key_invalid";
+    public static final String BACKUP_OTP_REQUIRED = "error.backup.otp_required";
+    public static final String BACKUP_OTP_MISSING = "error.backup.otp_missing";
+    public static final String BACKUP_OTP_EXPIRED = "error.backup.otp_expired";
+    public static final String BACKUP_OTP_INVALID = "error.backup.otp_invalid";
+    public static final String BACKUP_LOGIN_BLOCKED = "error.backup.login_blocked";
+    public static final String BACKUP_SQL_FILE_REQUIRED = "error.backup.sql_file_required";
+    public static final String BACKUP_SQL_FILE_EXTENSION = "error.backup.sql_file_extension";
+    public static final String BACKUP_SQL_FILE_MIME = "error.backup.sql_file_mime";
+    public static final String BACKUP_OPERATION_FAILED = "error.backup.operation_failed";
+
     private MessageKey() {
     }
 }
